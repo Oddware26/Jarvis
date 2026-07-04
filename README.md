@@ -15,7 +15,7 @@ Oddvark pairs a polished chat interface with a fully local AI backend. It chats 
 </p>
 
 <p align="center">
-  <img src="docs/images/chat.png" alt="Oddvark — a fully local AI chat with Markdown-rich answers" width="90%">
+  <img src="docs/images/demo-chat.gif" alt="Oddvark — ask a question and watch the answer stream in, 100% local" width="90%">
 </p>
 
 ---
@@ -99,7 +99,7 @@ Not sure? Open the **Models** page and hit **Scan my PC** — it reads your CPU,
 - Custom dropdowns throughout — no clunky native selects
 
 <p align="center">
-  <img src="docs/images/code-panel.png" alt="Live code streaming into a side code panel" width="49%">&nbsp;
+  <img src="docs/images/demo-code.gif" alt="Ask for a website and watch the code stream live into a side panel" width="49%">&nbsp;
   <img src="docs/images/models.png" alt="Built-in models library with one-click install" width="49%">
 </p>
 

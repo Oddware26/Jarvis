@@ -1,4 +1,4 @@
-/* Jarvis – persönlicher, lokaler Sprachassistent.
+/* Oddvark – persönlicher, lokaler KI-Assistent (Assistent-Persona/Wakeword: „Jarvis").
    Backend: lokales Ollama (http://localhost:11434). Sprache: Web Speech API (STT + TTS). */
 (function () {
   "use strict";
@@ -116,7 +116,7 @@
     document.querySelector('[role="group"][aria-label="Diktieren"] button');
 
   if (!input || !scrollC) {
-    console.warn("[Jarvis] Eingabefeld oder Transcript-Bereich nicht gefunden – Abbruch.");
+    console.warn("[Oddvark] Eingabefeld oder Transcript-Bereich nicht gefunden – Abbruch.");
     return;
   }
 
@@ -190,8 +190,8 @@
   // Aufwand: 0..5, Default 3 ("Extra"). Wird von ask() gelesen und in den /api/chat-Body übersetzt.
   let effort = clampEffort(parseInt(localStorage.getItem(LS_EFFORT), 10));
 
-  // ---------- Branding ---------- (Wortmarke "JARVIS" steht jetzt direkt im HTML)
-  document.title = "Jarvis";
+  // ---------- Branding ---------- (Wortmarke "ODDVARK" steht direkt im HTML; Assistent-Persona bleibt „Jarvis")
+  document.title = "Oddvark";
 
   // ---------- Chat-Oberfläche aufbauen ----------
   scrollC.innerHTML = "";
@@ -241,7 +241,7 @@
   }
   renderVoiceTgl();
 
-  // Pfeil/Chevron neben dem Mikrofon ("Diktat-Einstellungen") entfernen – in Jarvis ungenutzt.
+  // Pfeil/Chevron neben dem Mikrofon ("Diktat-Einstellungen") entfernen – in Oddvark ungenutzt.
   const micChevron =
     document.getElementById("base-ui-_r_ks_") ||
     document.querySelector('button[aria-label="Dictation settings"]') ||
@@ -453,7 +453,7 @@
   })();
   modeMenu.setSelected(mode);
 
-  // Jarvis-Identität in der Sidebar-Fußzeile (ersetzt das alte Account-Menü).
+  // Oddvark-Identität in der Sidebar-Fußzeile (ersetzt das alte Account-Menü).
   // Zeigt Präsenz + Live-Status (Bereit/Hört zu/Denkt/Spricht); Klick öffnet Einstellungen.
   const idChip = buildIdentityChip();
   function setAssistant(s) { if (idChip) idChip.setState(s); }
@@ -1132,7 +1132,7 @@
   // Status-Pille entfernt: Zustand zeigt der Identitäts-Chip (setAssistant); Fehler stehen im Transkript.
   // Funktion bleibt als No-op erhalten (zahlreiche Aufrufer); Fehlertexte landen zur Diagnose im Log.
   function setStatus(state, text) {
-    if (state === "error" && text) { try { console.warn("[Jarvis]", text); } catch (e) {} }
+    if (state === "error" && text) { try { console.warn("[Oddvark]", text); } catch (e) {} }
   }
   // Menü (position:fixed im body) bündig über dem Anker platzieren – ZOOM-SICHER.
   // Falle unter html{zoom:1.25}: getBoundingClientRect()/innerWidth liefern VISUELLE px
@@ -1488,7 +1488,7 @@
     window.addEventListener("resize", function () { if (isOpen()) place(); });
   }
 
-  // ---------- Jarvis-Identität (Fußzeile): Orb + Name + Live-Status, Klick -> Einstellungen ----------
+  // ---------- Oddvark-Identität (Fußzeile): Orb + Name + Live-Status, Klick -> Einstellungen ----------
   function buildIdentityChip() {
     const ARROW = HI("chevRight", { size: 16 });
     // Oddware-Logo als Marken-Avatar (viewBox auf den Inhalt zentriert; IDs namespaced).
@@ -1518,7 +1518,7 @@
     const logo = el("span", "jv-id-logo");
     logo.setAttribute("aria-hidden", "true");
     logo.innerHTML = LOGO;
-    const name = el("span", "jv-id-name", "Jarvis");
+    const name = el("span", "jv-id-name", "Oddvark");
     const statusWrap = el("span", "jv-id-status");
     const sdot = el("span", "jv-id-dot");
     sdot.setAttribute("aria-hidden", "true");
@@ -1541,7 +1541,7 @@
     const surface = el("div", "jv-mm-surface bg-surface-popover");
     surface.setAttribute("aria-hidden", "true");
     const scroll = el("div", "jv-mm-scroll");
-    const head = el("div", "jv-mm-head", "Jarvis");
+    const head = el("div", "jv-mm-head", "Oddvark");
     const list = el("div", "jv-mm-list");
     scroll.append(head, list);
     menu.append(surface, scroll);
@@ -4212,5 +4212,5 @@
   try { if (window.Notification && Notification.permission === "default") Notification.requestPermission(); } catch (e) {}
   clearInput();
   connect();
-  console.log("[Jarvis] bereit.");
+  console.log("[Oddvark] bereit.");
 })();

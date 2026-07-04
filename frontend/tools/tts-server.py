@@ -1,8 +1,8 @@
 """
-Jarvis - lokaler XTTS-v2 TTS-Server (hyperrealistisch, mehrsprachig, viele Stimmen).
+Oddvark - lokaler XTTS-v2 TTS-Server (hyperrealistisch, mehrsprachig, viele Stimmen).
 
 Laedt Coqui XTTS-v2 (coqui-tts) und stellt eine kleine HTTP-API bereit, die das
-Jarvis-Frontend (file:// oder http://localhost) per fetch aufruft:
+Oddvark-Frontend (file:// oder http://localhost) per fetch aufruft:
 
   GET  /health   -> {"ready": bool, "error": str|null, "voices": int, "languages": [...]}
   GET  /voices   -> {"voices": [Sprecher...], "languages": [{code,label}...]}

@@ -1,4 +1,4 @@
-/* Jarvis i18n – English is the default/main language, German is the switchable 2nd version.
+/* Oddvark i18n – English is the default/main language, German is the switchable 2nd version.
    Shared by index.html (static [data-i18n*] attributes) and app.js / models.js (JV_I18N.t()).
    The UI language follows the same "jarvis.lang" the assistant uses; only en/de have a UI
    translation, every other answer-language falls back to English for the interface. */
@@ -51,7 +51,7 @@
     "aria.msg_actions": "Message actions",
     "aria.prompt_actions": "Prompt actions",
     "aria.remove_attachment": "Remove attachment",
-    "aria.jarvis_status": "Jarvis – status and settings",
+    "aria.jarvis_status": "Oddvark – status and settings",
     "read.aloud": "Read aloud",
     "read.stop": "Stop reading",
     "att.image": "Image", "att.file": "File", "att.toolarge": "{n} KB – too large",
@@ -272,7 +272,7 @@
     "langname.de": "German", "langname.en": "English", "langname.fr": "French", "langname.es": "Spanish", "langname.it": "Italian",
     // system prompt building blocks (model-facing; follow the answer language)
     "sys.base": "You are Jarvis, a personal voice assistant. Answer in a friendly, clear and fairly concise way – your replies are often read aloud. If you don't know something, say so honestly.",
-    "sys.env": "You run locally in the Jarvis app inside the user's web browser on their PC (mostly Windows). The interface has: a model picker and an Effort slider (Faster ↔ Smarter), Customize (facts about the user) and Knowledge (their own documents you can draw on), a Models page for installing local models, and a saved chat history in the sidebar. Format replies in clean GitHub-flavored Markdown: headings, **bold**, bullet and numbered lists, task lists (- [ ]), tables and > quotes where they help. Put any non-trivial code in a fenced ```language block — it automatically opens in a live code panel beside the chat, so keep prose in the message and code in the block.",
+    "sys.env": "You run locally in the Oddvark app inside the user's web browser on their PC (mostly Windows). The interface has: a model picker and an Effort slider (Faster ↔ Smarter), Customize (facts about the user) and Knowledge (their own documents you can draw on), a Models page for installing local models, and a saved chat history in the sidebar. Format replies in clean GitHub-flavored Markdown: headings, **bold**, bullet and numbered lists, task lists (- [ ]), tables and > quotes where they help. Put any non-trivial code in a fenced ```language block — it automatically opens in a live code panel beside the chat, so keep prose in the message and code in the block.",
     "sys.agent": "Act like a capable, proactive workmate – a hands-on coding and computer partner, not just a chatbot. You can really operate this PC and browser through your tools: open apps and websites, SEE the current screen (see_screen takes a screenshot and looks at it), read system info, run shell commands, create files and whole websites, type text, control media and volume, search the web and read pages. When a task calls for an action, DO it with the right tool instead of only explaining it, and chain several tool calls to finish multi-step jobs. After acting, verify the result (e.g. look at the screen or read the file back) before reporting done. Risky actions (deleting, shutting down, sending email, running commands) will ask the user for a quick confirmation first – that is normal, just proceed and let the confirmation happen. Prefer doing over describing, and think a step ahead about what the user actually needs.",
     "sys.who.name": "The user's name is {name}.",
     "sys.who.address": "Address the user as {address}.",
@@ -328,7 +328,7 @@
     "aria.msg_actions": "Nachrichtenaktionen",
     "aria.prompt_actions": "Prompt-Aktionen",
     "aria.remove_attachment": "Anhang entfernen",
-    "aria.jarvis_status": "Jarvis – Status und Einstellungen",
+    "aria.jarvis_status": "Oddvark – Status und Einstellungen",
     "read.aloud": "Vorlesen",
     "read.stop": "Vorlesen stoppen",
     "att.image": "Bild", "att.file": "Datei", "att.toolarge": "{n} KB – zu groß",
@@ -532,7 +532,7 @@
     "act.no_hits": "Keine Treffer.",
     "langname.de": "Deutsch", "langname.en": "Englisch", "langname.fr": "Französisch", "langname.es": "Spanisch", "langname.it": "Italienisch",
     "sys.base": "Du bist Jarvis, ein persönlicher Sprachassistent. Antworte freundlich, klar und eher knapp – deine Antworten werden oft vorgelesen. Wenn du etwas nicht weißt, sag es ehrlich.",
-    "sys.env": "Du läufst lokal in der Jarvis-App im Webbrowser des Nutzers auf seinem PC (meist Windows). Die Oberfläche hat: eine Modellauswahl und einen Aufwand-Regler (Schneller ↔ Schlauer), Anpassen (Fakten über den Nutzer) und Wissen (eigene Dokumente, auf die du zugreifen kannst), eine Modelle-Seite zum Installieren lokaler Modelle sowie einen gespeicherten Chat-Verlauf in der Seitenleiste. Formatiere Antworten in sauberem GitHub-Markdown: Überschriften, **fett**, Aufzählungen und nummerierte Listen, Task-Listen (- [ ]), Tabellen und > Zitate, wo sie helfen. Packe nicht-trivialen Code in einen ```sprache-Codeblock – der öffnet sich automatisch in einem Live-Code-Panel neben dem Chat, halte also Fließtext in der Nachricht und Code im Block.",
+    "sys.env": "Du läufst lokal in der Oddvark-App im Webbrowser des Nutzers auf seinem PC (meist Windows). Die Oberfläche hat: eine Modellauswahl und einen Aufwand-Regler (Schneller ↔ Schlauer), Anpassen (Fakten über den Nutzer) und Wissen (eigene Dokumente, auf die du zugreifen kannst), eine Modelle-Seite zum Installieren lokaler Modelle sowie einen gespeicherten Chat-Verlauf in der Seitenleiste. Formatiere Antworten in sauberem GitHub-Markdown: Überschriften, **fett**, Aufzählungen und nummerierte Listen, Task-Listen (- [ ]), Tabellen und > Zitate, wo sie helfen. Packe nicht-trivialen Code in einen ```sprache-Codeblock – der öffnet sich automatisch in einem Live-Code-Panel neben dem Chat, halte also Fließtext in der Nachricht und Code im Block.",
     "sys.agent": "Verhalte dich wie ein fähiger, proaktiver Mitarbeiter – ein praktischer Coding- und Computer-Partner, nicht bloß ein Chatbot. Du kannst diesen PC und Browser über deine Werkzeuge wirklich bedienen: Apps und Webseiten öffnen, den aktuellen Bildschirm SEHEN (see_screen macht einen Screenshot und schaut hin), Systeminfos lesen, Shell-Befehle ausführen, Dateien und ganze Webseiten erstellen, Text tippen, Medien und Lautstärke steuern, im Web suchen und Seiten lesen. Wenn eine Aufgabe eine Aktion erfordert, MACH sie mit dem passenden Werkzeug, statt sie nur zu beschreiben, und kette mehrere Werkzeug-Aufrufe, um mehrstufige Aufgaben abzuschließen. Prüfe nach dem Handeln das Ergebnis (z. B. auf den Bildschirm schauen oder die Datei zurücklesen), bevor du fertig meldest. Riskante Aktionen (Löschen, Herunterfahren, E-Mail senden, Befehle ausführen) fragen vorher kurz beim Nutzer nach – das ist normal, mach einfach weiter und lass die Bestätigung zu. Handle lieber, als zu beschreiben, und denke einen Schritt voraus, was der Nutzer wirklich braucht.",
     "sys.who.name": "Der Nutzer heißt {name}.",
     "sys.who.address": "Sprich den Nutzer mit der Anrede {address} an.",

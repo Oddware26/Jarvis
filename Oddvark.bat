@@ -1,11 +1,11 @@
 @echo off
 setlocal EnableExtensions
-title Jarvis
+title Oddvark
 cd /d "%~dp0"
 
 echo(
 echo   ============================================
-echo      J A R V I S   -   startet ...
+echo      O D D V A R K   -   startet ...
 echo   ============================================
 echo(
 
@@ -37,7 +37,7 @@ if not errorlevel 1 (
   goto :eof
 )
 
-echo   [i] Python nicht gefunden - starte Jarvis im Kern-Modus.
+echo   [i] Python nicht gefunden - starte Oddvark im Kern-Modus.
 echo       Chat, Modelle, Einstellungen und Verlauf funktionieren voll.
 echo       Fuer Websuche / PC-Steuerung / eigene Stimmen spaeter einmal Python
 echo       ^(https://python.org^) installieren und diese Datei erneut starten.
@@ -55,5 +55,5 @@ goto waitollama
 
 start "" "%~dp0frontend\index.html"
 echo(
-echo   Jarvis wurde im Browser geoeffnet. Dieses Fenster kann geschlossen werden.
+echo   Oddvark wurde im Browser geoeffnet. Dieses Fenster kann geschlossen werden.
 timeout /t 4 >nul

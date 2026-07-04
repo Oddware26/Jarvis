@@ -1,7 +1,7 @@
 """
-Jarvis - lokaler Spracherkennungs-Server (Speech-to-Text) mit faster-whisper.
+Oddvark - lokaler Spracherkennungs-Server (Speech-to-Text) mit faster-whisper.
 
-Offline, lokal, genau und mehrsprachig - damit Jarvis nicht mehr von der
+Offline, lokal, genau und mehrsprachig - damit Oddvark nicht mehr von der
 Cloud-Web-Speech-API abhaengt. Nimmt Audio (webm/ogg/wav/mp3) entgegen und
 gibt den erkannten Text zurueck. Das Frontend (file:// oder http://localhost)
 ruft die API per fetch auf:

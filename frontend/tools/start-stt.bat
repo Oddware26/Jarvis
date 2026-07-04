@@ -1,5 +1,5 @@
 @echo off
-REM Jarvis - lokaler Spracherkennungs-Server (faster-whisper) starten, Port 7865.
+REM Oddvark - lokaler Spracherkennungs-Server (faster-whisper) starten, Port 7865.
 REM Optionale Abhaengigkeit:   pip install faster-whisper
 REM Fuer webm/ogg zusaetzlich ffmpeg im PATH (WAV geht auch ohne).
 REM Erster /transcribe laedt das Whisper-Modell automatisch herunter (~140 MB bei "base").

@@ -1,4 +1,4 @@
-/* Jarvis – Modell-Bibliothek. Durchsuchen/Filtern/Herunterladen von Ollama-Modellen.
+/* Oddvark – Modell-Bibliothek. Durchsuchen/Filtern/Herunterladen von Ollama-Modellen.
    Katalog kommt aus window.MODELS_CATALOG (per <script src> eingebunden, kein fetch).
    Installierte Modelle werden live via OLLAMA/api/tags ermittelt.
    Downloads laufen über OLLAMA/api/pull (NDJSON-Streaming) – exakt wie in jarvis.js. */
@@ -516,7 +516,7 @@
       );
     }
 
-    // Tab "In Jarvis"
+    // Tab "In Oddvark"
     const tokenInstalled = size
       ? isSizeInstalled(model, size)
       : isModelInstalled(model);
@@ -574,7 +574,7 @@
           '<button type="button" class="mdl-tab" role="tab" data-tab-key="ollama" ' +
             'aria-selected="' + (tab === "ollama" ? "true" : "false") + '">Ollama</button>' +
           '<button type="button" class="mdl-tab" role="tab" data-tab-key="jarvis" ' +
-            'aria-selected="' + (tab === "jarvis" ? "true" : "false") + '">In Jarvis</button>' +
+            'aria-selected="' + (tab === "jarvis" ? "true" : "false") + '">In Oddvark</button>' +
         "</div>" +
         '<div class="mdl-action-box">' + actionInnerHTML(model) + "</div>" +
         '<div class="mdl-dl-row">' + dlRowHTML(model) + "</div>" +

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Jarvis – plattformübergreifender Starter (Windows / macOS / Linux).
+Oddvark – plattformübergreifender Starter (Windows / macOS / Linux).
 
-Startet alle lokalen Dienste und öffnet Jarvis im Browser. Nichts ist auf einen
+Startet alle lokalen Dienste und öffnet Oddvark im Browser. Nichts ist auf einen
 bestimmten Rechner hartkodiert – einfach das Repo klonen und `python start.py` ausführen.
 
     python start.py
@@ -80,7 +80,7 @@ def has_venv_python(venv_dir):
 def main():
     tools = os.path.join(HERE, "tools")
     print("=" * 54)
-    print("   J A R V I S   –   Dienste starten")
+    print("   O D D V A R K   –   Dienste starten")
     print("=" * 54)
 
     # 1) Ollama (nur starten, wenn installiert und nicht schon aktiv)
@@ -124,7 +124,7 @@ def main():
             break
         time.sleep(0.5)
     url = "http://localhost:8000/index.html"
-    print("  Öffne Jarvis: %s" % url)
+    print("  Öffne Oddvark: %s" % url)
     try:
         webbrowser.open(url)
     except Exception:

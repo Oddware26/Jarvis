@@ -1,8 +1,10 @@
-# 🤖 Jarvis
+# 🤖 Oddvark
 
 **Your own AI assistant that lives on your PC. Chat, talk, see, and act — 100% local, powered by [Ollama](https://ollama.com).**
 
-Jarvis pairs a polished chat interface with a fully local AI backend. It chats and speaks with hyper-real offline voices, sees your screen, opens apps, runs commands, builds entire websites live in a side code panel, searches the web, generates images, and completes multi-step tasks on your machine — always asking before it does anything risky.
+Oddvark pairs a polished chat interface with a fully local AI backend. It chats and speaks with hyper-real offline voices, sees your screen, opens apps, runs commands, builds entire websites live in a side code panel, searches the web, generates images, and completes multi-step tasks on your machine — always asking before it does anything risky.
+
+> Oddvark is the app; your assistant answers to **"Jarvis"** by default — or any name you give it.
 
 🔒 **100% local processing. No cloud, no API keys, no subscriptions, no telemetry. Your data never leaves your machine.**
 
@@ -13,12 +15,12 @@ Jarvis pairs a polished chat interface with a fully local AI backend. It chats a
 </p>
 
 <p align="center">
-  <img src="docs/images/chat.png" alt="Jarvis — a fully local AI chat with Markdown-rich answers" width="90%">
+  <img src="docs/images/chat.png" alt="Oddvark — a fully local AI chat with Markdown-rich answers" width="90%">
 </p>
 
 ---
 
-## Why Jarvis?
+## Why Oddvark?
 
 - 🔒 **Your data stays yours** — every model runs locally through Ollama. All helper servers bind to `127.0.0.1` only. No account, no cloud, no data harvesting. This is non-negotiable.
 - 🛠️ **A real work beast, not just a chatbot** — it opens your apps, types for you, reads system info, runs commands, creates files and whole websites, and works through multi-step PC tasks autonomously. Anything risky asks first.
@@ -29,7 +31,7 @@ Jarvis pairs a polished chat interface with a fully local AI backend. It chats a
 
 ---
 
-## 🚀 Install Jarvis
+## 🚀 Install Oddvark
 
 ### 1. Install the prerequisites
 
@@ -38,12 +40,12 @@ Jarvis pairs a polished chat interface with a fully local AI backend. It chats a
 | [Ollama](https://ollama.com) | all platforms | runs the AI models |
 | [Python 3.10+](https://python.org) | all platforms | on Windows, tick **"Add python.exe to PATH"** |
 
-### 2. Get Jarvis
+### 2. Get Oddvark
 
 Click the green **Code** button above → **Download ZIP** (then extract), or:
 
 ```bash
-git clone https://github.com/Oddware26/Jarvis.git
+git clone https://github.com/Oddware26/Oddvark.git
 ```
 
 ### 3. Set it up — one command
@@ -61,13 +63,13 @@ git clone https://github.com/Oddware26/Jarvis.git
 
 > Plan for roughly **45–50 GB** of downloads in total. You can start chatting as soon as the first model is pulled — the heavy steps only power voices, vision, and images.
 
-### 4. Start Jarvis
+### 4. Start Oddvark
 
 ```bat
-Jarvis.bat
+Oddvark.bat
 ```
 
-All services launch automatically and Jarvis opens at **http://localhost:8000** — just start typing, or press the mic and talk.
+All services launch automatically and Oddvark opens at **http://localhost:8000** — just start typing, or press the mic and talk.
 
 ---
 
@@ -151,7 +153,7 @@ Not sure? Open the **Models** page and hit **Scan my PC** — it reads your CPU,
 
 ## ⚙️ Configuration
 
-Configuration is optional — Jarvis runs fine with defaults. For email sending (SMTP), app/domain whitelists, the Whisper model size, or a bigger vision model:
+Configuration is optional — Oddvark runs fine with defaults. For email sending (SMTP), app/domain whitelists, the Whisper model size, or a bigger vision model:
 
 ```bash
 cp frontend/config.example.json frontend/config.json   # then edit it
@@ -195,7 +197,7 @@ If `from diffusers import ZImagePipeline` fails, your diffusers release predates
 <details>
 <summary><b>🔌 What runs where / ports</b></summary>
 
-All of this is installed by `setup.bat` and started by `Jarvis.bat` / `start.py`:
+All of this is installed by `setup.bat` and started by `Oddvark.bat` / `start.py`:
 
 | Service | Port | Needed for |
 | --- | --- | --- |
@@ -215,10 +217,10 @@ All servers bind to `127.0.0.1` only. The action server is loopback-only by desi
 <summary><b>🩺 Troubleshooting</b></summary>
 
 - **Stuck on "Connecting…" / no response** — Ollama isn't running. Start it (launch the Ollama app, or run `ollama serve`) and reload.
-- **"Failed to fetch" when opening `index.html` directly** — a `file://` page is blocked by Ollama's CORS policy. Always start via `Jarvis.bat` / `python frontend/start.py` (serves from `localhost`), or allow it once with `setx OLLAMA_ORIGINS "*"` and restart Ollama.
+- **"Failed to fetch" when opening `index.html` directly** — a `file://` page is blocked by Ollama's CORS policy. Always start via `Oddvark.bat` / `python frontend/start.py` (serves from `localhost`), or allow it once with `setx OLLAMA_ORIGINS "*"` and restart Ollama.
 - **No models in the dropdown** — `setup.bat` hasn't pulled them yet. Run it, or `ollama pull llama3.1:8b`, then refresh.
-- **Microphone doesn't work** — the mic needs a real origin, not `file://`. Start via `Jarvis.bat` / `python frontend/start.py` so the app is served at `http://localhost:8000`, then allow mic access.
-- **Two tabs open** — that's fine; Jarvis handles multiple tabs and shares the same local storage.
+- **Microphone doesn't work** — the mic needs a real origin, not `file://`. Start via `Oddvark.bat` / `python frontend/start.py` so the app is served at `http://localhost:8000`, then allow mic access.
+- **Two tabs open** — that's fine; Oddvark handles multiple tabs and shares the same local storage.
 - **A feature is missing** — its install step probably failed. Re-run `setup.bat` (finished steps are skipped) and check the action server's `GET /capabilities`.
 - **Screen vision answers oddly / errors** — pull the vision model (`ollama pull qwen2.5vl:7b`) or set a bigger one in `frontend/config.json` (`"vision_model": "qwen2.5vl:32b"`).
 
@@ -228,7 +230,7 @@ All servers bind to `127.0.0.1` only. The action server is loopback-only by desi
 
 ## 🚧 Known limitations
 
-Jarvis is young and built in the open — issues and ideas are very welcome!
+Oddvark is young and built in the open — issues and ideas are very welcome!
 
 - Primary development happens on **Windows**. macOS/Linux use the manual setup and are less battle-tested.
 - Voices, vision, and image generation really want an **NVIDIA GPU** — they run on CPU, just slowly.
@@ -253,10 +255,10 @@ Built on local, open-source models via [Ollama](https://ollama.com), with Whispe
 
 ## 💬 Community & support
 
-Join the **Oddware** Discord — get help, show what you built with Jarvis, and shape what comes next:
+Join the **Oddware** Discord — get help, show what you built with Oddvark, and shape what comes next:
 
 <p align="center">
   <a href="https://discord.gg/VSe7CpmJWG"><img src="https://discord.com/api/guilds/1523026404944380154/widget.png?style=banner2" alt="Join the Oddware Discord server"></a>
 </p>
 
-Prefer GitHub? [Report an issue](https://github.com/Oddware26/Jarvis/issues) — bug reports, feature ideas, and contributions are all welcome.
+Prefer GitHub? [Report an issue](https://github.com/Oddware26/Oddvark/issues) — bug reports, feature ideas, and contributions are all welcome.

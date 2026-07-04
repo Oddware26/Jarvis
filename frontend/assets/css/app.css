@@ -1,4 +1,4 @@
-/* Jarvis – Chat-/Sprachassistent-UI, nutzt die Design-Tokens aus theme.css */
+/* Oddvark – Chat-/Sprachassistent-UI, nutzt die Design-Tokens aus theme.css */
 
 /* Alle Elemente 25% größer, aber weiterhin auf EINEN Bildschirm passend (kein Seiten-Scroll).
    Trick: Das Layout rechnet mit 80vw/80vh; zoom 1.25 skaliert es exakt auf die volle Viewport-Größe.
@@ -244,7 +244,7 @@ body.min-h-screen {
   min-width: 168px;
 }
 
-/* ---------- Jarvis-Identität in der Sidebar-Fußzeile (ersetzt das Account-Menü) ---------- */
+/* ---------- Oddvark-Identität in der Sidebar-Fußzeile (ersetzt das Account-Menü) ---------- */
 .jv-id {
   display: flex;
   align-items: center;

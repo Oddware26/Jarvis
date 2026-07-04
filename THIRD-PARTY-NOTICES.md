@@ -1,6 +1,6 @@
 # Third-Party Notices
 
-Jarvis is released under the MIT License (see [LICENSE](LICENSE)). It bundles the
+Oddvark is released under the MIT License (see [LICENSE](LICENSE)). It bundles the
 following third-party assets, each under its own license. The required license
 texts are included in this repository.
 

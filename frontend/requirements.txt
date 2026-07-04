@@ -1,4 +1,4 @@
-# Jarvis – Python-Abhängigkeiten für Aktions-Server (tools/action-server.py) und Whisper-STT.
+# Oddvark – Python-Abhängigkeiten für Aktions-Server (tools/action-server.py) und Whisper-STT.
 # Wird von setup.bat installiert (bzw. `pip install -r frontend/requirements.txt`).
 # Fehlt ein Paket doch einmal, degradiert das betroffene Feature sauber (siehe GET /capabilities).
 

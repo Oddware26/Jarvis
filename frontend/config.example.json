@@ -40,7 +40,7 @@
     "language": null
   },
 
-  "_workspace_hinweis": "Arbeitsordner fuer Datei-Erstellung, Projekt-Scaffolding und Ausfuehrung (write_file/read_file/list_workspace/create_project/run_command/run_file/open_path). Relative Pfade sind IMMER relativ zu diesem Ordner (Pfad-Traversal-Schutz; kein Ausbruch via '..'). Absolute Pfade sind erlaubt, gelten aber als sensibel und verlangen eine Bestaetigung. Wird beim Start angelegt, falls nicht vorhanden. Leer/weglassen = ~/JarvisWorkspace.",
+  "_workspace_hinweis": "Arbeitsordner fuer Datei-Erstellung, Projekt-Scaffolding und Ausfuehrung (write_file/read_file/list_workspace/create_project/run_command/run_file/open_path). Relative Pfade sind IMMER relativ zu diesem Ordner (Pfad-Traversal-Schutz; kein Ausbruch via '..'). Absolute Pfade sind erlaubt, gelten aber als sensibel und verlangen eine Bestaetigung. Wird beim Start angelegt, falls nicht vorhanden. Leer/weglassen = ~/OddvarkWorkspace.",
   "workspace_dir": "",
 
   "_run_timeout_hinweis": "Timeout in Sekunden fuer run_command/run_file.",

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Jarvis Web-Server fuer die Entwicklung: liefert das frontend/-Verzeichnis MIT No-Cache-Headern,
+# Oddvark Web-Server fuer die Entwicklung: liefert das frontend/-Verzeichnis MIT No-Cache-Headern,
 # damit Aenderungen an app.js/.css sofort sichtbar sind (kein "harter Reload" noetig).
 import http.server
 import socketserver
@@ -33,7 +33,7 @@ class Server(socketserver.ThreadingTCPServer):
 
 if __name__ == "__main__":
     with Server((HOST, PORT), Handler) as httpd:
-        print("Jarvis Web (No-Cache) auf http://localhost:%d  -  Root: %s" % (PORT, ROOT), flush=True)
+        print("Oddvark Web (No-Cache) auf http://localhost:%d  -  Root: %s" % (PORT, ROOT), flush=True)
         try:
             httpd.serve_forever()
         except KeyboardInterrupt:

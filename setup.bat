@@ -1,14 +1,14 @@
 @echo off
 setlocal EnableExtensions
-title Jarvis Setup
+title Oddvark Setup
 cd /d "%~dp0"
 
 echo(
 echo   ============================================
-echo      J A R V I S   -   full setup
+echo      O D D V A R K   -   full setup
 echo   ============================================
 echo(
-echo   This installs EVERYTHING Jarvis can do:
+echo   This installs EVERYTHING Oddvark can do:
 echo     - Ollama models  : chat (llama3.1:8b), vision (qwen2.5vl:7b), embeddings
 echo     - Action server  : PC control, screenshots, clipboard, agent (pip packages)
 echo     - Voice input    : offline Whisper (faster-whisper)
@@ -68,7 +68,7 @@ if exist "%TTSVENV%\Scripts\python.exe" (
   if errorlevel 1 "%TTSVENV%\Scripts\python.exe" -m pip install torch torchaudio
   echo   [*] Installing coqui-tts ...
   "%TTSVENV%\Scripts\python.exe" -m pip install coqui-tts
-  if errorlevel 1 echo   [!] XTTS install failed - Jarvis will use the browser voice instead.
+  if errorlevel 1 echo   [!] XTTS install failed - Oddvark will use the browser voice instead.
 )
 
 REM ---------------------------------------------------------------- 4) Z-Image venv
@@ -108,7 +108,7 @@ if exist "%USERPROFILE%\Z-Image-Turbo\model_index.json" (
 echo(
 echo   ============================================
 echo      Setup finished.
-echo      Start Jarvis with:  Jarvis.bat
+echo      Start Oddvark with:  Oddvark.bat
 echo   ============================================
 echo(
 pause

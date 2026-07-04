@@ -1,4 +1,4 @@
-# Jarvis - lokale Websuche (DuckDuckGo, ohne API-Key), Port 7863.
+# Oddvark - lokale Websuche (DuckDuckGo, ohne API-Key), Port 7863.
 # Nur Python-Standardbibliothek (wie serve.py): kein venv, keine Abhaengigkeiten.
 #   GET /health           -> {"ok": true}
 #   GET /search?q=..&n=8  -> {"results": [{"title","url","snippet"}, ...]}
@@ -325,5 +325,5 @@ class Handler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    print("Jarvis Websuche-Server auf http://127.0.0.1:%d (Beenden: Strg+C)" % PORT)
+    print("Oddvark Websuche-Server auf http://127.0.0.1:%d (Beenden: Strg+C)" % PORT)
     ThreadingHTTPServer(("127.0.0.1", PORT), Handler).serve_forever()

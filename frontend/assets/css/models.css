@@ -1,4 +1,4 @@
-/* Jarvis – Modell-Bibliothek. Nutzt die Design-Tokens aus theme.css
+/* Oddvark – Modell-Bibliothek. Nutzt die Design-Tokens aus theme.css
    (hsl(var(--bg-100)) etc.) und übernimmt Easing/Popup-Gefühl aus app.css. */
 
 :root {
@@ -592,7 +592,7 @@ body {
   background: #1d3e2c33;
 }
 
-/* Primär-Button (Tab "In Jarvis") */
+/* Primär-Button (Tab "In Oddvark") */
 .mdl-set {
   display: inline-flex;
   align-items: center;

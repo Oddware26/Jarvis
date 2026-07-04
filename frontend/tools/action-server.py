@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-# Jarvis - lokaler "Aktions-Server": gibt dem Sprachassistenten echten PC-/Browser-/Vision-Zugriff.
+# Oddvark - lokaler "Aktions-Server": gibt dem Sprachassistenten echten PC-/Browser-/Vision-Zugriff.
 # Port 7864, bindet NUR an 127.0.0.1 (loopback). ThreadingHTTPServer, reine stdlib im Kern.
 #
 # SICHERHEIT / AUTH:
 #   - Der Server lauscht ausschliesslich auf 127.0.0.1. Es gibt bewusst KEIN Token-/Passwort-Auth,
-#     weil nur lokale Prozesse (das Jarvis-Frontend auf http://localhost:8000) ihn erreichen koennen.
+#     weil nur lokale Prozesse (das Oddvark-Frontend auf http://localhost:8000) ihn erreichen koennen.
 #     Wer lokalen Zugriff hat, koennte diese Aktionen ohnehin selbst ausfuehren.
 #   - "Confirm-by-default": riskante Aktionen (delete/move/overwrite/power/run_code/send_email/
 #     browser_act/organize/close_app/unbekannte open_app/agent_task) werden NICHT ungefragt
@@ -102,7 +102,7 @@ DEFAULT_CONFIG = {
     "confirm_required": ["delete", "move", "overwrite", "power", "run_code", "send_email"],
     # Arbeitsordner fuer Datei-Erstellung / Projekt-Scaffolding / Ausfuehrung. Relative Pfade
     # der neuen Endpunkte sind IMMER relativ zu diesem Ordner (Pfad-Traversal-Schutz).
-    "workspace_dir": os.path.join(os.path.expanduser("~"), "JarvisWorkspace"),
+    "workspace_dir": os.path.join(os.path.expanduser("~"), "OddvarkWorkspace"),
     # Timeout (Sekunden) fuer run_command / run_file.
     "run_timeout_sec": 60,
 }
@@ -134,7 +134,7 @@ CONFIRM_REQUIRED = set(CONFIG.get("confirm_required", []))
 
 # Arbeitsordner (Workspace) fuer Datei-/Projekt-/Ausfuehrungs-Aktionen.
 WORKSPACE_DIR = os.path.abspath(os.path.expanduser(
-    CONFIG.get("workspace_dir") or os.path.join(os.path.expanduser("~"), "JarvisWorkspace")))
+    CONFIG.get("workspace_dir") or os.path.join(os.path.expanduser("~"), "OddvarkWorkspace")))
 try:
     RUN_TIMEOUT = int(CONFIG.get("run_timeout_sec") or 60)
 except Exception:
@@ -1420,7 +1420,7 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
-    print("Jarvis Aktions-Server auf http://%s:%d  (Beenden: Strg+C)" % (HOST, PORT))
+    print("Oddvark Aktions-Server auf http://%s:%d  (Beenden: Strg+C)" % (HOST, PORT))
     caps = capabilities()["libs"]
     print("[Aktion] Libs: " + ", ".join("%s=%s" % (k, v) for k, v in caps.items()))
     print("[Aktion] Log-Datei: %s" % LOG_FILE)

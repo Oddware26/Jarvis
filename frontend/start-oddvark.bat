@@ -1,5 +1,5 @@
 @echo off
-REM Jarvis ueber http://localhost starten.
+REM Oddvark ueber http://localhost starten.
 REM WICHTIG fuer Mikrofon/Wake-Word: bei file:// vergisst Chrome die Mikro-Erlaubnis und fragt
 REM staendig neu. Ueber http://localhost merkt sich Chrome die Erlaubnis dauerhaft
 REM ("Beim Besuch der Website erlauben" einmal klicken -> nie wieder Nachfrage).

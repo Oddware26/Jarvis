@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Aktualisiert den Modell-Katalog für die Jarvis-Modell-Seite.
+"""Aktualisiert den Modell-Katalog für die Oddvark-Modell-Seite.
 
 Lädt die komplette Ollama-Library (https://ollama.com/library) und erzeugt neu:
   - assets/js/models-catalog.js   (window.MODELS_CATALOG = {...}; -> von models.html geladen)
@@ -21,7 +21,7 @@ JSON_OUT = ROOT / "assets" / "models-catalog.json"
 
 
 def fetch(url):
-    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (Jarvis catalog updater)"})
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (Oddvark catalog updater)"})
     with urllib.request.urlopen(req, timeout=30) as r:
         return r.read().decode("utf-8", "replace")
 

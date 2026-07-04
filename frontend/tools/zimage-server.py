@@ -1,8 +1,8 @@
 """
-Jarvis – lokaler Z-Image-Turbo Bild-Server.
+Oddvark – lokaler Z-Image-Turbo Bild-Server.
 
 Lädt Z-Image-Turbo (diffusers ZImagePipeline) und stellt eine kleine HTTP-API bereit,
-die das Jarvis-Frontend (file:// oder http://localhost) per fetch aufruft:
+die das Oddvark-Frontend (file:// oder http://localhost) per fetch aufruft:
 
   GET  /health            -> {"ready": bool, "error": str|null, "offload": str}
   POST /generate          -> {"image": "data:image/png;base64,..."}

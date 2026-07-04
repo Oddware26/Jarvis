@@ -1012,19 +1012,20 @@
   let relTimer = 0;
   function fmtRel(date) {
     const s = Math.max(0, Math.round((Date.now() - date.getTime()) / 1000));
-    if (s < 60) return "jetzt";
+    const de = lang === "de";
+    if (s < 60) return de ? "jetzt" : "now";
     const m = Math.floor(s / 60);
-    if (m < 60) return "vor " + m + (m === 1 ? " Minute" : " Minuten");
+    if (m < 60) return de ? ("vor " + m + (m === 1 ? " Minute" : " Minuten")) : (m + " min ago");
     const h = Math.floor(m / 60);
-    if (h < 24) return "vor " + h + (h === 1 ? " Stunde" : " Stunden");
+    if (h < 24) return de ? ("vor " + h + (h === 1 ? " Stunde" : " Stunden")) : (h + (h === 1 ? " hr ago" : " hrs ago"));
     const d = Math.floor(h / 24);
-    return "vor " + d + (d === 1 ? " Tag" : " Tagen");
+    return de ? ("vor " + d + (d === 1 ? " Tag" : " Tagen")) : (d + (d === 1 ? " day ago" : " days ago"));
   }
   function registerRelTime(elm) {
     const date = new Date();
     try {
       elm.setAttribute("datetime", date.toISOString());
-      elm.title = date.toLocaleString("de-DE", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit", timeZoneName: "short" });
+      elm.title = date.toLocaleString(lang === "de" ? "de-DE" : "en-US", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit", timeZoneName: "short" });
     } catch (e) {}
     elm.textContent = fmtRel(date);
     relTimes.push({ el: elm, date: date });

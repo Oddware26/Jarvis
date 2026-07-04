@@ -4,6 +4,15 @@
 
 Jarvis is a fully local, privacy-first personal assistant that runs on your own PC. It pairs a polished, modern chat interface with a local LLM backend ([Ollama](https://ollama.com)) — nothing is ever sent to the cloud. But Jarvis is more than a chatbot: with its optional action server it becomes a real *work beast* that can see your screen, open apps, run commands, build entire websites, search the web, and complete multi-step tasks on your machine — always asking before it does anything risky.
 
+<p align="center">
+  <img src="docs/images/chat.png" alt="Jarvis — a fully local AI chat with Markdown-rich answers" width="90%">
+</p>
+
+<p align="center">
+  <img src="docs/images/code.png" alt="Live code streaming into a side code panel" width="49%">&nbsp;
+  <img src="docs/images/models.png" alt="Built-in models library with one-click install" width="49%">
+</p>
+
 ---
 
 ## ✨ Features

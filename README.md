@@ -9,7 +9,7 @@ Jarvis is a fully local, privacy-first personal assistant that runs on your own 
 </p>
 
 <p align="center">
-  <img src="docs/images/code.png" alt="Live code streaming into a side code panel" width="49%">&nbsp;
+  <img src="docs/images/code-panel.png" alt="Live code streaming into a side code panel" width="49%">&nbsp;
   <img src="docs/images/models.png" alt="Built-in models library with one-click install" width="49%">
 </p>
 

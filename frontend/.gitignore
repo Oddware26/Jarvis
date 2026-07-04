@@ -1,0 +1,39 @@
+# --- Jarvis: nicht ins Repository ---
+
+# Lokale Konfiguration mit evtl. Secrets (SMTP, API-Keys, Whitelists)
+config.json
+
+# Aktions-Log (Laufzeit-Audit)
+tools/action-log.jsonl
+
+# Python-venvs der lokalen Modelle (mehrere GB, lokal installieren)
+tools/tts-venv/
+tools/zimage-venv/
+
+# Modelle / Gewichte / Caches
+*.safetensors
+*.ckpt
+*.pt
+*.pth
+*.gguf
+tools/**/models/
+.cache/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# OS / Editor
+Thumbs.db
+Desktop.ini
+.DS_Store
+.vscode/
+.idea/
+
+# Temporär
+*.log
+*.tmp
+__*-test.html

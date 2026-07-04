@@ -1,0 +1,1328 @@
+/* Jarvis – Chat-/Sprachassistent-UI, nutzt die Design-Tokens aus theme.css */
+
+/* Alle Elemente 25% größer, aber weiterhin auf EINEN Bildschirm passend (kein Seiten-Scroll).
+   Trick: Das Layout rechnet mit 80vw/80vh; zoom 1.25 skaliert es exakt auf die volle Viewport-Größe.
+   Dadurch bleibt die Prompt-Box unten sichtbar (nur eben 25% größer). Nur index.html (jarvis.css). */
+html.h-screen {
+  zoom: 1.25;
+  width: 80vw;
+  height: 80vh;
+  overflow: hidden;
+}
+body.min-h-screen {
+  /* Definite Höhe (nicht nur min-height!), damit das innere h-full/Flex der App
+     dagegen auflösen kann und der Composer unten verankert bleibt. */
+  height: 80vh;
+  min-height: 80vh;
+  overflow: hidden;
+}
+/* Zwischen body und der App liegt ein Wrapper (#root) ohne height:100%, daher
+   bricht die h-full-Kette und die App-Shell wächst auf Inhaltshöhe (Composer unter dem Fold).
+   Wir binden NUR die äußere App-Shell (das Grid, .bg-bg-100) an den Viewport: 80vh ×1.25 zoom = volle Höhe.
+   WICHTIG: nicht einfach `.epitaxy-root` – diese Klasse hängt auch am Slack-Banner und am Overlay,
+   die sonst mit aufgeblasen würden. */
+.epitaxy-root.bg-bg-100 {
+  height: 80vh;
+  max-height: 80vh;
+  overflow: hidden;
+}
+
+#jarvis-wrap {
+  width: 100%;
+  margin: 0 auto;
+  padding: 16px 16px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Sprachausgabe-Schalter (Lautsprecher-Icon) neben dem Mikrofon in der Bottom-Bar */
+.jarvis-tts-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  flex: 0 0 auto;
+  width: 30px; height: 30px; margin-left: 2px;
+  border-radius: 8px;
+  color: hsl(var(--text-300)); background: transparent; cursor: pointer;
+  transition: background 130ms cubic-bezier(0.23, 1, 0.32, 1), color 120ms ease, transform 120ms ease;
+}
+.jarvis-tts-btn:hover { background: hsl(var(--text-100) / 0.08); color: hsl(var(--text-100)); }
+.jarvis-tts-btn .jarvis-tts-ico { display: inline-flex; align-items: center; justify-content: center; }
+.jarvis-tts-btn[aria-pressed="true"],
+.jarvis-tts-btn[aria-pressed="true"]:hover { color: hsl(var(--accent-100)); }
+.jarvis-tts-btn:active { transform: scale(0.92); }
+
+/* Modell-Menü (App-Style-Popup am Bottom-Button) */
+.jv-modelmenu {
+  position: fixed;
+  z-index: 1000;
+  min-width: 240px;
+  max-width: 400px;
+  max-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  padding: 6px 0;
+  border-radius: 8px;
+  isolation: isolate;
+  background: hsl(48 5% 14%);
+  border: 1px solid hsl(var(--text-100) / 0.14);
+  box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.55);
+  transform-origin: bottom right;
+  opacity: 0;
+  transform: scale(0.96) translateY(6px);
+  pointer-events: none;
+  outline: none;
+  transition: opacity 160ms cubic-bezier(0.23, 1, 0.32, 1),
+    transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.jv-modelmenu[data-open="true"] {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+/* Linksbündige Variante (Modus-Menü am "Auto"-Button) */
+.jv-modelmenu.jv-mm-left { transform-origin: bottom left; }
+.jv-mm-surface {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background: hsl(48 5% 14%);
+}
+.jv-mm-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+.jv-mm-head {
+  display: flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 4px 12px;
+  font-size: 12px;
+  color: hsl(var(--text-500));
+}
+.jv-mm-list { display: flex; flex-direction: column; }
+.jv-mm-item {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+  padding: 0 12px;
+  font-size: 14px;
+  color: hsl(var(--text-100));
+  cursor: default;
+  user-select: none;
+}
+/* Inkrementell nachgeladene Einträge (z. B. ElevenLabs-Stimmen) sanft einblenden – kurz, ease-out, kein scale(0). */
+@keyframes jv-mm-in { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: translateY(0); } }
+.jv-mm-item.jv-mm-new { animation: jv-mm-in 160ms cubic-bezier(0.23, 1, 0.32, 1) both; }
+@media (prefers-reduced-motion: reduce) { .jv-mm-item.jv-mm-new { animation: none; } }
+/* Platzhalter/„lädt …"-Einträge: gedämpft, nicht anklickbar, kein Hover-Highlight, kein Haken-Slot-Hover. */
+.jv-mm-item.jv-mm-disabled { color: hsl(var(--text-400)); font-style: italic; pointer-events: none; }
+.jv-mm-item.jv-mm-disabled:hover::before { background: transparent; }
+.jv-mm-item::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 1px 6px;
+  border-radius: 6px;
+  background: transparent;
+  transition: background 120ms ease;
+}
+.jv-mm-item:hover::before,
+.jv-mm-item.is-active::before,
+.jv-mm-item[role="menuitemradio"][aria-checked="true"]::before { background: hsl(var(--text-100) / 0.10); }
+.jv-mm-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-right: 16px;
+}
+.jv-mm-check {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+.jv-mm-item[aria-checked="true"] .jv-mm-check { display: flex; }
+.jv-mm-sep {
+  position: relative;
+  height: 9px;
+  margin: 4px 0;
+}
+.jv-mm-sep::before {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: 50%;
+  height: 1px;
+  background: hsl(var(--text-100) / 0.12);
+}
+.jv-mm-ico {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  color: hsl(var(--text-300));
+  transition: color 120ms ease;
+}
+.jv-mm-add .jv-mm-name { color: hsl(var(--accent-100)); }
+.jv-mm-add .jv-mm-ico { color: hsl(var(--text-100)); }
+.jv-mm-scroll::-webkit-scrollbar { width: 9px; }
+.jv-mm-scroll::-webkit-scrollbar-thumb {
+  background: hsl(var(--text-500) / 0.4);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+/* Wert rechts in den Settings-Zeilen (an/aus, aktuelle Sprache) */
+.jv-mm-val {
+  flex: 0 0 auto;
+  font-size: 13px;
+  color: hsl(var(--text-300));
+  white-space: nowrap;
+}
+/* Pill-Toggle-Switch (z. B. "Stimme an/aus"): Knob gleitet per transform (GPU), ease-out. */
+.jv-switch {
+  position: relative;
+  flex: 0 0 auto;
+  width: 32px;
+  height: 18px;
+  border-radius: 9px;
+  background: hsl(var(--text-100) / 0.18);
+  transition: background-color 180ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.jv-switch-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px hsl(0 0% 0% / 0.35);
+  transition: transform 180ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.jv-switch.is-on { background: hsl(var(--accent-100)); }
+.jv-switch.is-on .jv-switch-knob { transform: translateX(14px); }
+
+/* Caret an einer Zeile, die ein Untermenü öffnet (z. B. "Sprache") */
+.jv-mm-caret {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  margin-left: 2px;
+  color: hsl(var(--text-500));
+}
+.jv-mm-caret svg { width: 14px; height: 14px; }
+.jv-mm-item:hover .jv-mm-caret,
+.jv-mm-item.is-active .jv-mm-caret { color: hsl(var(--text-300)); }
+/* Sprach-Flyout: liegt IM Popover und wird per position:absolute direkt rechts an die
+   "Sprache"-Zeile gehängt (left:100% = rechte Popover-Kante). Wächst nach oben, daher
+   Ursprung unten links; schmaler als das Modell-Menü. */
+.jv-submenu {
+  position: absolute;
+  left: 100%;
+  margin-left: 6px;
+  transform-origin: bottom left;
+  min-width: 168px;
+}
+
+/* ---------- Jarvis-Identität in der Sidebar-Fußzeile (ersetzt das Account-Menü) ---------- */
+.jv-id {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 100%;
+  height: max(28px, var(--df-footer-btn-size, 32px));
+  padding: 0 8px 0 var(--df-row-px, 8px);
+  border: 0;
+  background: transparent;
+  border-radius: var(--df-radius-pill, 9px);
+  color: hsl(var(--text-100));
+  cursor: pointer;
+  outline: none;
+  text-align: left;
+  transition: background 120ms ease, transform 120ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.jv-id:hover { background: var(--df-hover, hsl(var(--text-100) / 0.06)); }
+.jv-id:active { transform: scale(0.98); }
+.jv-id:focus-visible { box-shadow: 0 0 0 2px hsl(var(--accent-100) / 0.6); }
+
+/* Marken-Avatar: Oddware-Logo auf heller App-Icon-Kachel. Das Logo ist für hellen
+   Grund gemacht (dunkle Hauptform), daher die helle Kachel – so bleibt es auf der
+   dunklen Fußzeile sichtbar und behält seine echten Farben. */
+.jv-id-logo {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 50% 42%, #ffffff 0%, #f8f8f7 68%, #f1f1f0 100%);
+  box-shadow: inset 0 0 0 1px hsl(0 0% 0% / 0.06), 0 1px 2px hsl(0 0% 0% / 0.28);
+  overflow: hidden;
+}
+.jv-id-logo svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+  overflow: visible;
+}
+.jv-id-name {
+  font-size: var(--df-row-font, 13px);
+  font-weight: 500;
+  color: hsl(var(--text-200));
+  white-space: nowrap;
+}
+.jv-id-status {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.jv-id-state {
+  font-size: calc(var(--df-row-font, 13px) - 1px);
+  color: hsl(var(--text-400));
+  white-space: nowrap;
+}
+
+/* Status-Punkt: Farbe je Zustand */
+.jv-id-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  background: hsl(var(--text-500));
+}
+.jv-id[data-state="ready"] .jv-id-dot { background: #3fb950; }
+.jv-id[data-state="error"] .jv-id-dot { background: #f85149; }
+.jv-id[data-state="listening"] .jv-id-dot { background: #58a6ff; }
+.jv-id[data-state="thinking"] .jv-id-dot { background: #d29922; }
+.jv-id[data-state="speaking"] .jv-id-dot { background: hsl(var(--accent-100)); }
+.jv-id[data-state="connecting"] .jv-id-dot { background: hsl(var(--text-500)); }
+
+/* Der Punkt pulst NUR bei Aktivität – kein Dauer-Geblinke in immer-sichtbarem UI. */
+@keyframes jvPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.66); }
+}
+.jv-id[data-state="listening"] .jv-id-dot,
+.jv-id[data-state="thinking"] .jv-id-dot,
+.jv-id[data-state="speaking"] .jv-id-dot,
+.jv-id[data-state="connecting"] .jv-id-dot {
+  animation: jvPulse 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jv-modelmenu { transition: none; }
+  .jv-id .jv-id-dot { animation: none; }
+  .jv-id:active { transform: none; }
+  .jv-switch, .jv-switch-knob { transition: none; }
+}
+
+/* Aufwand-Menü (App-Style-Popup am unteren "Extra"-Button) */
+.jv-effort {
+  /* Lokale Slider-Vars; bei Ultracode (data-top-stop) auf Lila umgestellt */
+  --ef-fill: hsl(45 5% 35%);
+  --ef-handle: var(--ui-slider-handle, #fff);
+  --ef-track: hsl(48 4% 8%);
+  --ef-accent: var(--ef-fill);
+  position: fixed;
+  z-index: 1000;
+  width: 220px;
+  isolation: isolate;
+  border-radius: var(--r8, 12px);
+  background: hsl(48 5% 14%);
+  border: 1px solid hsl(var(--text-100) / 0.14);
+  box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.55);
+  transform-origin: bottom right;
+  opacity: 0;
+  transform: scale(0.96) translateY(6px);
+  pointer-events: none;
+  outline: none;
+  transition: opacity 160ms cubic-bezier(0.23, 1, 0.32, 1),
+    transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.jv-effort[data-open="true"] {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+/* Ultracode: Sonderzustand in Lila für Fill, Handle und Header-Label */
+.jv-effort[data-top-stop] {
+  --ef-fill: var(--extended-purple);
+  /* Pille bleibt im hellen Grau/Weiß wie bei den anderen Stufen – nur einen Tick heller (nicht lila) */
+  --ef-handle: #fff;
+  --ef-accent: var(--extended-purple);
+}
+/* Bei Ultracode trägt der Fill die Energie-Basis (gleicher Verlauf wie das Canvas in
+   createEnergyAnimation: linear 0..1 = #272929→#242525→#1f1f24). So ist der dunkle
+   Track-Hintergrund (--ef-track) vollständig verdeckt und die durch filter:blur(0.6px)
+   ausfadende Canvas-Kante blendet nahtlos – KEINE dunkle Outline um das Raster. */
+.jv-effort[data-top-stop] .jv-ef-fill { background: linear-gradient(90deg, #272929 0%, #242525 40%, #1f1f24 100%); }
+/* Surface heller wie .jv-modelmenu (überschreibt bg-surface-popover) */
+.jv-ef-surface {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background: hsl(48 5% 14%);
+}
+.jv-ef-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+}
+.jv-ef-head {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.jv-ef-title {
+  margin: 0;
+  flex: 0 0 auto;
+  /* identische Schrift wie "Schneller"/"Intelligenter" (.jv-ef-end) */
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--t6, hsl(var(--text-500)));
+}
+.jv-ef-level {
+  /* gleiche Schrift wie "Aufwand" (.jv-ef-title), nur etwas heller */
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--t7, hsl(var(--text-300)));
+  transition: color 140ms ease;
+}
+.jv-ef-level.is-top { color: var(--extended-purple); }
+.jv-ef-info {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: hsl(var(--text-500));
+  cursor: default;
+}
+.jv-ef-ends {
+  display: flex;
+  justify-content: space-between;
+}
+.jv-ef-end {
+  font-size: 11px;
+  color: var(--t6, hsl(var(--text-500)));
+}
+/* Slider-Bahn – dicker, abgerundeter Balken wie im Original ("Faden") */
+.jv-ef-track {
+  position: relative;
+  height: 20px;
+  margin: 6px 7px 4px;
+  cursor: pointer;
+  touch-action: none;
+}
+/* Die Bahn selbst (Hintergrund) */
+.jv-ef-track::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--r5, 6px);
+  background: var(--ef-track);
+}
+/* Gefüllter Teil (links), oben links abgerundet, rechts vom Handle verdeckt */
+.jv-ef-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  overflow: hidden;
+  border-radius: var(--r5, 6px) 0 0 var(--r5, 6px);
+  background: var(--ef-accent);
+  /* background bewusst NICHT animieren: bei 0–4 ist er konstant grau, beim Eintritt in
+     Ultracode verdeckt das Canvas ihn, und Verlauf↔Solid (background-image) ist nicht
+     interpolierbar → würde beim Verlassen von Ultracode einen diskreten dunklen Flash erzeugen. */
+  transition: width 140ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+/* Energie-Animation (Canvas) im Fill – nur bei Ultracode sichtbar (display via JS) */
+.jv-ef-energy {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+  pointer-events: none;
+  filter: blur(0.6px); /* leicht weiche Raster-Zellen */
+}
+.jv-ef-dot {
+  position: absolute;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: hsl(var(--text-100) / 0.4);
+  transition: opacity 200ms ease;
+  pointer-events: none;
+}
+/* Punkte über data-step positionieren – um 14px von den Rändern eingerückt,
+   damit sie enger beieinander sitzen (nativer Look). */
+.jv-ef-dot[data-step="0"] { left: 14px; }
+.jv-ef-dot[data-step="1"] { left: calc(14px + (100% - 28px) * 0.2); }
+.jv-ef-dot[data-step="2"] { left: calc(14px + (100% - 28px) * 0.4); }
+.jv-ef-dot[data-step="3"] { left: calc(14px + (100% - 28px) * 0.6); }
+.jv-ef-dot[data-step="4"] { left: calc(14px + (100% - 28px) * 0.8); }
+.jv-ef-dot[data-step="5"] { left: calc(100% - 14px); background: var(--extended-purple); }
+/* Ultracode: Punkte ausblenden, wie im Original */
+.jv-effort[data-top-stop] .jv-ef-dot { opacity: 0; }
+/* Handle als vertikale Pille */
+.jv-ef-handle {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 14px;
+  height: calc(100% - 1px);
+  transform: translate(-50%, -50%);
+  border-radius: 5px;
+  background: var(--ef-handle);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  cursor: grab;
+  touch-action: none;
+  transition: left 140ms cubic-bezier(0.23, 1, 0.32, 1),
+    background 140ms ease, transform 120ms ease-out;
+}
+.jv-ef-handle:active { cursor: grabbing; transform: translate(-50%, -50%) scaleY(0.92); }
+/* Während des Ziehens keine Positions-Transition – Handle/Fill folgen sofort.
+   Fill: gar keine Transition (sonst diskreter Verlauf↔Solid-Flash beim Ultracode-Wechsel). */
+.jv-effort[data-dragging] .jv-ef-fill { transition: none; }
+.jv-effort[data-dragging] .jv-ef-handle { transition: background 140ms ease; cursor: grabbing; }
+/* Verstecktes Range-Input – nur Tastatur/a11y. pointer-events:none, damit die
+   eigenen Track-/Handle-Zeiger-Handler maßgeblich sind (deterministisches Snapping). */
+.jv-ef-range {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .jv-ef-handle:hover { transform: translate(-50%, -50%) scaleX(1.18); }
+  .jv-ef-handle:active { transform: translate(-50%, -50%) scaleY(0.92); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .jv-effort,
+  .jv-ef-fill,
+  .jv-ef-handle,
+  .jv-ef-dot,
+  .jv-ef-level { transition: none; }
+}
+
+/* Befehls-Chip im Eingabefeld (Plus-Menü: /bild, /web) – farbige Karte mit Icon.
+   contenteditable=false im Editor: wird als Ganzes markiert/gelöscht. */
+.jarvis-cmd-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px 2px 7px;
+  margin-right: 2px;
+  border-radius: 7px;
+  font-size: 0.92em;
+  line-height: 1.45;
+  vertical-align: -2px;
+  white-space: nowrap;
+  user-select: none;
+  color: #fff;
+  background: hsl(var(--text-100) / 0.10);
+  animation: jarvis-chip-in 160ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.jarvis-cmd-chip svg { width: 13px; height: 13px; flex: 0 0 auto; }
+/* Text weiß; Farbe über getönten Hintergrund + farbiges Icon: Bild blau, Websuche orange. */
+.jarvis-cmd-chip.is-bild { background: hsl(208 90% 55% / 0.18); }
+.jarvis-cmd-chip.is-bild svg { color: hsl(208 95% 68%); }
+.jarvis-cmd-chip.is-web { background: hsl(28 90% 52% / 0.18); }
+.jarvis-cmd-chip.is-web svg { color: hsl(28 95% 62%); }
+@keyframes jarvis-chip-in { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .jarvis-cmd-chip { animation: none; } }
+
+/* Entfernen-X: erscheint beim Hover über den Chip; Klick entfernt den Befehl. */
+.jarvis-cmd-chip { position: relative; }
+.jarvis-cmd-x {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  margin-left: 1px;
+  margin-right: -3px;
+  border-radius: 5px;
+  cursor: pointer;
+  color: #fff;
+  opacity: 0;
+  max-width: 0;
+  overflow: hidden;
+  transition: opacity 130ms cubic-bezier(0.23, 1, 0.32, 1),
+    max-width 130ms cubic-bezier(0.23, 1, 0.32, 1),
+    background 120ms ease;
+}
+.jarvis-cmd-chip:hover .jarvis-cmd-x,
+.jarvis-cmd-chip:focus-within .jarvis-cmd-x { opacity: 0.75; max-width: 18px; }
+.jarvis-cmd-x:hover { opacity: 1 !important; background: hsl(0 0% 100% / 0.18); }
+.jarvis-cmd-x svg { width: 11px; height: 11px; }
+@media (prefers-reduced-motion: reduce) { .jarvis-cmd-x { transition: opacity 130ms ease; } }
+
+/* Quellen der Websuche: Pille in der Fußzeilen-Toolbar (zwischen Vorlesen und Zeit),
+   Link-Liste klappt erst per Klick unter der Fußzeile auf. */
+.jarvis-turn-toolbar.jarvis-has-src { opacity: 1; pointer-events: auto; } /* Toolbar dauerhaft sichtbar, wenn Quellen da sind */
+.jarvis-src-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 3px 6px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent; /* keine Karte hinter den Quellen – erscheint erst beim Hovern */
+  color: hsl(var(--text-100));
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  align-self: center;
+  transition: background 140ms ease, transform 120ms ease-out;
+}
+.jarvis-src-pill:hover { background: hsl(var(--text-100) / 0.08); }
+.jarvis-src-pill:active { transform: scale(0.97); }
+.jarvis-src-icons { display: inline-flex; }
+.jarvis-src-fav {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: hsl(var(--text-100) / 0.15);
+  flex: 0 0 auto;
+}
+.jarvis-src-icons .jarvis-src-fav { margin-left: -6px; border: 2px solid hsl(48 5% 10%); }
+.jarvis-src-icons .jarvis-src-fav:first-child { margin-left: 0; }
+.jarvis-src-list { display: flex; flex-direction: column; gap: 2px; margin-top: 6px; }
+.jarvis-src-list[hidden] { display: none; } /* sonst überschreibt display:flex das hidden-Attribut */
+.jarvis-src-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: inherit;
+  animation: jv-mm-in 160ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+.jarvis-src-item:hover { background: hsl(var(--text-100) / 0.07); }
+.jarvis-src-item .jarvis-src-fav { width: 16px; height: 16px; border-radius: 4px; }
+.jarvis-src-text { display: flex; flex-direction: column; min-width: 0; }
+.jarvis-src-title {
+  font-size: 13.5px;
+  color: hsl(var(--text-100));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.jarvis-src-domain { font-size: 12px; color: hsl(var(--text-400)); }
+@media (prefers-reduced-motion: reduce) {
+  .jarvis-src-item { animation: none; }
+  .jarvis-src-pill:active { transform: none; }
+}
+
+/* Nachrichten */
+.jarvis-msg {
+  display: flex;
+  /* Kurze Einblend-Animation für jede neu gesendete/empfangene Nachricht (ease-out, leicht von unten). */
+  animation: jarvis-msg-in 240ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+@keyframes jarvis-msg-in {
+  from { opacity: 0; transform: translateY(8px); }
+}
+.jarvis-msg .b {
+  max-width: 82%;
+  padding: 10px 14px;
+  border-radius: 16px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 15px;
+}
+.jarvis-msg.user { justify-content: flex-end; }
+/* Text in Bubbles ist markierbar (die Wrapper vererben select-none) */
+.jarvis-msg .b { user-select: text; -webkit-user-select: text; }
+/* Kein Ausblend-Verlauf oben über dem Transkript – Nachrichten sollen beim Scrollen nicht verblassen */
+.epitaxy-root .epitaxy-top-scrim { display: none; }
+/* User-Bubble: Spalte aus Bubble + Hover-Aktionen darunter (rechtsbündig, wie die Antwort-Toolbar) */
+.jarvis-user-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  max-width: 82%;
+}
+.jarvis-user-col .b { max-width: 100%; }
+.jarvis-user-col .jarvis-turn-toolbar { padding-top: 2px; }
+.jarvis-msg.user .b {
+  background: hsl(var(--accent-100));
+  color: #fff;
+  border-bottom-right-radius: 5px;
+}
+.jarvis-msg.assistant .b {
+  background: hsl(var(--bg-200));
+  color: hsl(var(--text-100));
+  border: 1px solid hsl(var(--border-100) / 0.10);
+  border-bottom-left-radius: 5px;
+}
+.jarvis-msg.assistant .b.jarvis-error {
+  background: #f8514920;
+  color: #ffb4ad;
+  border-color: #f8514955;
+}
+
+/* ---------- KI-Antwort als Transkript-Eintrag (ohne Card, gerendertes Markdown) ---------- */
+.jarvis-turn { animation: jarvis-msg-in 240ms cubic-bezier(0.23, 1, 0.32, 1) both; }
+/* Fußzeile: während des Denkens "✳ Ns" (sichtbar), danach Toolbar (hover) + relative Zeit (immer). */
+.jarvis-turn-foot[data-state="thinking"] .jarvis-turn-toolbar,
+.jarvis-turn-foot[data-state="thinking"] .jarvis-rel { display: none; }
+.jarvis-turn-foot[data-state="done"] .jarvis-thinking { display: none; }
+.jarvis-thinking { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: hsl(var(--text-400)); }
+.jarvis-thinking-t { font-variant-numeric: tabular-nums; }
+/* Toolbar-Inhalte vertikal mittig. */
+.jarvis-turn-toolbar { align-items: center; }
+.jarvis-rel { align-self: center; line-height: 1; }
+/* Vorlesen-Button behält den Hover-Look (Fläche + helleres Icon), solange vorgelesen wird. */
+.jarvis-turn-toolbar button.jarvis-speaking { color: var(--t7); }
+.jarvis-turn-toolbar button.jarvis-speaking .btn-squish { background-color: var(--fill-uncontained-hover); }
+/* Turn-Toolbar-Icon-Buttons (Kopieren, Vorlesen, …): eigener transparenter Icon-Button.
+   .btn-squish = Hover/Active-Fläche hinter dem Icon (bleibt beim Vorlesen sichtbar). */
+.jarvis-turn-btn {
+  position: relative; isolation: isolate;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  color: var(--t6); cursor: pointer;
+  transition: color 120ms ease, transform 120ms ease;
+}
+.jarvis-turn-btn:hover { color: var(--t7); }
+.jarvis-turn-btn:active { transform: scale(0.92); }
+.jarvis-turn-btn svg { width: 16px; height: 16px; }
+.btn-squish {
+  position: absolute; inset: 0; z-index: -1;
+  border-radius: inherit; background: transparent;
+  transition: background 130ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.jarvis-turn-btn:hover .btn-squish { background: var(--fill-uncontained-hover); }
+.jarvis-turn-btn:active .btn-squish { background: var(--t3); }
+.jarvis-turn .epitaxy-markdown { color: hsl(var(--text-100)); font-size: 15px; line-height: 1.55; }
+.jarvis-turn .epitaxy-markdown > :first-child { margin-top: 0; }
+.jarvis-turn .epitaxy-markdown > :last-child { margin-bottom: 0; }
+.jarvis-turn .epitaxy-markdown p { margin: 0 0 10px; }
+.jarvis-turn .epitaxy-markdown ul,
+.jarvis-turn .epitaxy-markdown ol { margin: 0 0 10px; padding-left: 22px; }
+.jarvis-turn .epitaxy-markdown li { margin: 3px 0; }
+.jarvis-turn .epitaxy-markdown li::marker { color: hsl(var(--text-400)); }
+.jarvis-turn .epitaxy-markdown h1,
+.jarvis-turn .epitaxy-markdown h2,
+.jarvis-turn .epitaxy-markdown h3 { margin: 14px 0 8px; font-weight: 600; line-height: 1.3; }
+.jarvis-turn .epitaxy-markdown h1 { font-size: 1.35em; }
+.jarvis-turn .epitaxy-markdown h2 { font-size: 1.2em; }
+.jarvis-turn .epitaxy-markdown h3 { font-size: 1.05em; }
+.jarvis-turn .epitaxy-markdown strong { font-weight: 600; }
+.jarvis-turn .epitaxy-markdown a {
+  color: hsl(var(--accent-100));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.jarvis-turn .epitaxy-markdown code {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.88em;
+  padding: 1.5px 5px;
+  border-radius: 5px;
+  background: hsl(var(--text-100) / 0.08);
+}
+.jarvis-turn .epitaxy-markdown pre {
+  margin: 0 0 10px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: hsl(var(--text-100) / 0.06);
+  overflow-x: auto;
+}
+.jarvis-turn .epitaxy-markdown pre code { background: none; padding: 0; font-size: 0.85em; line-height: 1.5; }
+.jarvis-turn .epitaxy-markdown blockquote {
+  margin: 0 0 10px;
+  padding-left: 12px;
+  border-left: 2px solid hsl(var(--text-100) / 0.2);
+  color: hsl(var(--text-300));
+}
+.jarvis-turn-error { color: #ffb4ad; }
+@media (prefers-reduced-motion: reduce) {
+  .jarvis-turn { animation: jarvis-fade-in 160ms ease both; }
+}
+
+/* Streaming-Cursor */
+.jarvis-typing::after {
+  content: "▋";
+  margin-left: 1px;
+  animation: jarvis-blink 1s steps(2, start) infinite;
+}
+
+/* Mikrofon aktiv: nur rote Färbung (kein Ring) */
+.jarvis-listening { color: #f85149 !important; }
+
+@keyframes jarvis-blink { to { opacity: 0; } }
+
+/* Erzeugtes Bild im Chat */
+.jarvis-img { margin: 0; }
+.jarvis-img img {
+  display: block;
+  width: 100%;
+  max-width: min(420px, 100%);
+  height: auto;
+  border-radius: 12px;
+  border: 1px solid hsl(var(--text-100) / 0.10);
+}
+.jarvis-img-cap {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: hsl(var(--text-400));
+  max-width: min(420px, 100%);
+}
+/* Skeleton-Platzhalter (Shimmer) während der Generierung */
+.jarvis-img-skel {
+  width: min(420px, 60vw);
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  background: linear-gradient(
+    100deg,
+    hsl(var(--text-100) / 0.05) 30%,
+    hsl(var(--text-100) / 0.13) 50%,
+    hsl(var(--text-100) / 0.05) 70%
+  );
+  background-size: 200% 100%;
+  animation: jarvis-shimmer 1.4s linear infinite;
+}
+.jarvis-img-loading { margin-top: 8px; font-size: 13px; color: hsl(var(--text-300)); }
+@keyframes jarvis-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+/* ---------- Datei-Anhänge ("+"-Button) ---------- */
+/* Karten-Sektion oben IN der Prompt-Box (im nativen ausklappbaren Grid-Slot) */
+.jarvis-attach {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 14px 14px;
+}
+.jarvis-attach:empty { display: none; }
+/* Trennstrich = abgerundete Oberkante des Eingabe-Bereichs: horizontale Linie, deren Enden mit dem
+   Box-Radius (var(--r7)) nach unten kurven und zu null auslaufen. NUR Top-Rahmen (keine Seiten),
+   damit KEIN zweiter Strich neben dem Box-Rahmen entsteht (kein Overlap an der Ecke). */
+.jarvis-attach::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--r7);
+  border-top: 1px solid hsl(var(--text-100) / 0.18);
+  border-radius: var(--r7) var(--r7) 0 0;
+  pointer-events: none;
+}
+.jarvis-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  max-width: 240px;
+  padding: 6px 8px 6px 6px;
+  border-radius: 11px;
+  background: hsl(var(--bg-300) / 0.7);
+  border: 1px solid hsl(var(--text-100) / 0.10);
+  animation: jarvis-pop 200ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.jarvis-chip-thumb {
+  width: 34px; height: 34px;
+  flex: 0 0 auto;
+  border-radius: 7px;
+  object-fit: cover;
+  display: block;
+}
+.jarvis-chip-ico {
+  width: 34px; height: 34px;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  background: hsl(var(--text-100) / 0.08);
+  color: hsl(var(--text-300));
+}
+.jarvis-chip-meta { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
+.jarvis-chip-name {
+  font-size: 12.5px;
+  color: hsl(var(--text-100));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.jarvis-chip-sub { font-size: 11px; color: hsl(var(--text-500)); }
+.jarvis-chip-x {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px; height: 20px;
+  margin-left: 2px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: hsl(var(--text-100) / 0.10);
+  color: hsl(var(--text-200));
+  cursor: pointer;
+  transition: background 120ms ease, transform 120ms ease;
+}
+.jarvis-chip-x:hover { background: hsl(var(--text-100) / 0.20); }
+.jarvis-chip-x:active { transform: scale(0.88); }
+@keyframes jarvis-pop { from { opacity: 0; transform: translateY(4px) scale(0.96); } }
+
+/* Anhänge in der User-Bubble */
+.jarvis-msg-atts { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+.jarvis-msg-thumb { width: 140px; max-width: 70%; height: auto; border-radius: 8px; display: block; }
+.jarvis-msg-file {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 8px; border-radius: 8px;
+  background: hsl(0 0% 0% / 0.18); font-size: 12px;
+}
+.jarvis-msg-text { white-space: pre-wrap; }
+
+@media (prefers-reduced-motion: reduce) {
+  .jarvis-typing::after,
+  .jarvis-img-skel,
+  .jarvis-chip { animation: none; }
+  /* Bei reduzierter Bewegung nur sanft einblenden, ohne Versatz. */
+  .jarvis-msg { animation: jarvis-fade-in 160ms ease both; }
+}
+@keyframes jarvis-fade-in { from { opacity: 0; } }
+
+/* ===================== Anpassen-Zentrale (Overlay-Modal) ===================== */
+.jv-an-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: hsl(0 0% 0% / 0.5);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 160ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.jv-an-backdrop[data-open="true"] { opacity: 1; pointer-events: auto; }
+/* Modal: zentriert (kein getBoundingClientRect -> zoom-sicher), skaliert aus der Mitte ein. */
+.jv-an {
+  width: min(560px, 100%);
+  /* vh ignoriert html{zoom:1.25} (Chrome) -> 86vh*1.25 würde überlaufen. Daher ~/1.25. */
+  max-height: 68vh;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--r8, 12px);
+  background: hsl(48 5% 14%);
+  border: 1px solid hsl(var(--text-100) / 0.14);
+  box-shadow: 0 24px 60px -16px rgba(0, 0, 0, 0.6);
+  isolation: isolate;
+  transform-origin: center;
+  opacity: 0;
+  transform: scale(0.96);
+  transition: opacity 180ms cubic-bezier(0.23, 1, 0.32, 1),
+    transform 180ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.jv-an-backdrop[data-open="true"] .jv-an { opacity: 1; transform: none; }
+.jv-an-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px;
+  border-bottom: 1px solid hsl(var(--text-100) / 0.10);
+}
+.jv-an-title { margin: 0; font-size: 15px; font-weight: 600; color: hsl(var(--text-100)); }
+.jv-an-close {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: hsl(var(--text-400));
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease, transform 120ms ease;
+}
+.jv-an-close:hover { background: hsl(var(--text-100) / 0.08); color: hsl(var(--text-100)); }
+.jv-an-close:active { transform: scale(0.92); }
+.jv-an-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.jv-an-body::-webkit-scrollbar { width: 9px; }
+.jv-an-body::-webkit-scrollbar-thumb {
+  background: hsl(var(--text-500) / 0.4);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.jv-an-sec { display: flex; flex-direction: column; gap: 10px; padding-top: 14px; border-top: 1px solid hsl(var(--text-100) / 0.07); }
+.jv-an-sec:first-child { border-top: 0; padding-top: 6px; }
+.jv-an-sec-h { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: hsl(var(--text-400)); }
+.jv-an-hint { font-size: 12px; color: hsl(var(--text-500)); margin-top: -4px; }
+.jv-an-field { display: flex; flex-direction: column; gap: 6px; }
+.jv-an-label { font-size: 13px; color: hsl(var(--text-300)); }
+.jv-an-input, .jv-an-textarea, .jv-an-select {
+  width: 100%;
+  font: inherit;
+  font-size: 14px;
+  color: hsl(var(--text-100));
+  background: hsl(48 4% 8%);
+  border: 1px solid hsl(var(--text-100) / 0.12);
+  border-radius: 8px;
+  padding: 8px 10px;
+  outline: none;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+.jv-an-textarea { resize: vertical; min-height: 64px; line-height: 1.45; }
+.jv-an-input:focus, .jv-an-textarea:focus, .jv-an-select:focus {
+  border-color: hsl(var(--accent-100) / 0.7);
+  box-shadow: 0 0 0 2px hsl(var(--accent-100) / 0.2);
+}
+.jv-an-input::placeholder, .jv-an-textarea::placeholder { color: hsl(var(--text-500)); }
+.jv-an-select { cursor: pointer; appearance: none; -webkit-appearance: none; padding-right: 28px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 width=%2212%22 height=%2212%22 fill=%22none%22%3E%3Cpath d=%22M18 9.00005C18 9.00005 13.5811 15 12 15C10.4188 15 6 9 6 9%22 stroke=%22%23999%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22 stroke-width=%221.5%22/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 9px center; }
+/* Zeile: Label links, Steuerelement rechts */
+.jv-an-row { display: flex; align-items: center; gap: 12px; min-height: 30px; }
+.jv-an-row-label { flex: 1 1 auto; font-size: 14px; color: hsl(var(--text-200)); }
+.jv-an-row .jv-an-input, .jv-an-row .jv-an-select { width: auto; flex: 0 0 auto; min-width: 150px; }
+/* Segmented control */
+.jv-an-seg { display: inline-flex; padding: 2px; gap: 2px; background: hsl(48 4% 8%); border-radius: 9px; border: 1px solid hsl(var(--text-100) / 0.10); }
+.jv-an-seg-btn {
+  flex: 1 1 auto;
+  border: 0;
+  background: transparent;
+  color: hsl(var(--text-300));
+  font: inherit;
+  font-size: 13px;
+  padding: 5px 12px;
+  border-radius: 7px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 140ms cubic-bezier(0.23, 1, 0.32, 1), color 140ms ease, transform 120ms ease;
+}
+.jv-an-seg-btn:active { transform: scale(0.96); }
+.jv-an-seg-btn.is-on { background: hsl(var(--text-100) / 0.12); color: hsl(var(--text-100)); }
+/* Gedächtnis-Liste */
+.jv-an-mem { display: flex; flex-direction: column; gap: 6px; }
+.jv-an-mem-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 8px 7px 11px;
+  background: hsl(48 4% 8%);
+  border: 1px solid hsl(var(--text-100) / 0.08);
+  border-radius: 8px;
+  font-size: 13px; color: hsl(var(--text-100));
+}
+.jv-an-mem-item span { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+.jv-an-mem-del {
+  flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border: 0; border-radius: 6px; background: transparent;
+  color: hsl(var(--text-500)); cursor: pointer; transition: background 120ms ease, color 120ms ease, transform 120ms ease;
+}
+.jv-an-mem-del:hover { background: hsl(var(--text-100) / 0.08); color: #f85149; }
+.jv-an-mem-del:active { transform: scale(0.9); }
+.jv-an-mem-empty { font-size: 13px; color: hsl(var(--text-500)); font-style: italic; }
+.jv-an-mem-add { display: flex; gap: 8px; }
+.jv-an-mem-add .jv-an-input { flex: 1 1 auto; }
+.jv-an-btn {
+  flex: 0 0 auto; border: 0; border-radius: 8px; cursor: pointer; font: inherit; font-size: 13px; font-weight: 500;
+  padding: 0 14px; color: hsl(var(--text-100)); background: hsl(var(--text-100) / 0.10);
+  transition: background 120ms ease, transform 120ms ease;
+}
+.jv-an-btn:hover { background: hsl(var(--text-100) / 0.16); }
+.jv-an-btn:active { transform: scale(0.97); }
+.jv-an-btn.is-accent { background: hsl(var(--accent-100) / 0.9); color: #fff; }
+.jv-an-btn.is-accent:hover { background: hsl(var(--accent-100)); }
+/* Tempo-Slider (native range, dezent gestylt) */
+.jv-an-range { flex: 0 0 auto; width: 150px; accent-color: hsl(var(--accent-100)); cursor: pointer; }
+@media (prefers-reduced-motion: reduce) {
+  .jv-an-backdrop, .jv-an, .jv-an-close, .jv-an-seg-btn, .jv-an-btn, .jv-an-mem-del { transition: none; }
+}
+
+/* Custom Dropdown (ersetzt natives <select>) – Trigger sieht aus wie ein Eingabefeld, Panel = .jv-modelmenu */
+.jv-sel {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  color: hsl(var(--text-100));
+  background: hsl(48 4% 8%);
+  border: 1px solid hsl(var(--text-100) / 0.12);
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+.jv-sel:hover { border-color: hsl(var(--text-100) / 0.2); }
+.jv-sel:focus-visible,
+.jv-sel[aria-expanded="true"] { border-color: hsl(var(--accent-100) / 0.7); box-shadow: 0 0 0 2px hsl(var(--accent-100) / 0.2); }
+.jv-sel-label { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.jv-sel-caret { flex: 0 0 auto; display: inline-flex; align-items: center; color: hsl(var(--text-400)); transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1); }
+.jv-sel[aria-expanded="true"] .jv-sel-caret { transform: rotate(180deg); }
+/* Panel öffnet NACH UNTEN, über dem Modal (z-index > .jv-an-backdrop) */
+.jv-sel-menu { z-index: 2100; min-width: 180px; max-height: 240px; transform-origin: top left; transform: scale(0.96) translateY(-4px); }
+.jv-sel-menu[data-open="true"] { transform: none; }
+@media (prefers-reduced-motion: reduce) { .jv-sel-caret { transition: none; } }
+
+/* Wake-Word aktiv: dezenter Akzent-Punkt am Mikrofon-Button */
+.jarvis-wake { position: relative; }
+.jarvis-wake::after { content: ""; position: absolute; top: 1px; right: 1px; width: 5px; height: 5px; border-radius: 50%; background: hsl(var(--accent-100)); box-shadow: 0 0 4px hsl(var(--accent-100)); animation: jarvis-wakepulse 2s ease-in-out infinite; pointer-events: none; }
+@keyframes jarvis-wakepulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+@media (prefers-reduced-motion: reduce) { .jarvis-wake::after { animation: none; } }
+
+/* ===== Eigene Popups: Wissen (blau) & Notizen (bernstein) – optisch klar unterschiedlich ===== */
+.jv-ov-ico { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; color: hsl(var(--text-300)); }
+/* Notizen – bernstein, schmal */
+.jv-ov-notes .jv-ov-ico { color: hsl(40 95% 60%); }
+.jv-ov-notes .jv-an-head { box-shadow: inset 0 -2px 0 hsl(40 95% 55% / 0.55); }
+.jv-ov-notes .jv-an-btn.is-accent { background: hsl(40 90% 52%); color: #1c1606; }
+.jv-ov-notes .jv-an-btn.is-accent:hover { background: hsl(40 95% 58%); }
+.jv-ov-notes .jv-switch.is-on { background: hsl(40 90% 52%); }
+.jv-ov-notes .jv-an-input:focus, .jv-ov-notes .jv-an-textarea:focus { border-color: hsl(40 90% 55% / 0.7); box-shadow: 0 0 0 2px hsl(40 90% 55% / 0.2); }
+.jv-ov-min { width: 66px; flex: 0 0 auto; text-align: center; }
+/* Wissen – blau, breit, Upload-Fokus */
+.jv-ov-wissen .jv-ov-ico { color: hsl(208 95% 63%); }
+.jv-ov-wissen .jv-an-head { box-shadow: inset 0 -2px 0 hsl(208 95% 58% / 0.55); }
+.jv-ov-wissen .jv-an-btn.is-accent { background: hsl(208 90% 55%); color: #fff; }
+.jv-ov-wissen .jv-an-btn.is-accent:hover { background: hsl(208 95% 62%); }
+.jv-ov-wissen .jv-switch.is-on { background: hsl(208 90% 55%); }
+.jv-ov-wissen .jv-an-input:focus, .jv-ov-wissen .jv-an-textarea:focus { border-color: hsl(208 90% 60% / 0.7); box-shadow: 0 0 0 2px hsl(208 90% 60% / 0.2); }
+.jv-ov-drop { border: 1.5px dashed hsl(var(--text-100) / 0.22); border-radius: 10px; padding: 18px; text-align: center; cursor: pointer; transition: border-color 140ms ease, background 140ms ease; }
+.jv-ov-drop:hover, .jv-ov-drop.is-over { border-color: hsl(208 90% 62% / 0.75); background: hsl(208 90% 60% / 0.07); }
+.jv-ov-drop-t { font-size: 14px; color: hsl(var(--text-200)); }
+.jv-ov-drop-s { font-size: 12px; color: hsl(var(--text-500)); margin-top: 3px; }
+
+/* ===== Lokale Fähigkeiten: Aktions-Chips + Bestätigungsdialog (Aktions-Server) ===== */
+/* Erscheinen OBERHALB der Antwort im aktuellen Turn – Kontext genau bei der Aktion, zu der sie gehören. */
+.jarvis-act-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.jarvis-act-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px 3px 8px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  line-height: 1.4;
+  white-space: nowrap;
+  user-select: none;
+  color: hsl(var(--text-300));
+  background: hsl(var(--text-100) / 0.06);
+  /* Nur transform/opacity animieren; Eintritt aus scale(0.95) – nie aus dem Nichts. */
+  animation: jarvis-act-chip-in 170ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+.jarvis-act-chip svg { width: 14px; height: 14px; flex: 0 0 auto; }
+/* Läuft gerade: Akzent, dezenter Puls (nur Opazität) als Status-Signal. */
+.jarvis-act-chip[data-kind="pending"] { color: hsl(var(--accent-100)); background: hsl(var(--accent-100) / 0.12); }
+.jarvis-act-chip[data-kind="pending"] svg { animation: jarvis-act-pulse 1.4s ease-in-out infinite; }
+/* Fertig: neutral, Icon im Akzent als leiser Haken-Hinweis. */
+.jarvis-act-chip[data-kind="done"] { color: hsl(var(--text-300)); background: hsl(var(--text-100) / 0.06); }
+.jarvis-act-chip[data-kind="done"] svg { color: hsl(var(--accent-100)); }
+/* Fehler/abgebrochen: Kernrot. */
+.jarvis-act-chip[data-kind="error"] { color: var(--core-red); background: var(--core-10-red, hsl(0 100% 60% / 0.1)); }
+.jarvis-act-chip[data-kind="error"] svg { color: var(--core-red); }
+@keyframes jarvis-act-chip-in { from { opacity: 0; transform: scale(0.95); } }
+@keyframes jarvis-act-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+
+/* Bestätigungsdialog – ruhige Karte, Akzentkante links; erscheint über der Antwort. */
+.jarvis-act-confirm {
+  margin: 2px 0 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: hsl(var(--bg-200));
+  border: 1px solid hsl(var(--text-100) / 0.10);
+  border-left: 3px solid hsl(var(--accent-100));
+  animation: jarvis-act-confirm-in 200ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+.jarvis-act-confirm-q { font-size: 14.5px; line-height: 1.5; color: hsl(var(--text-100)); }
+.jarvis-act-confirm-actions { display: flex; gap: 8px; margin-top: 10px; }
+.jarvis-act-cbtn {
+  border: 0;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 140ms cubic-bezier(0.23, 1, 0.32, 1), background 140ms ease;
+}
+.jarvis-act-cbtn:active { transform: scale(0.97); } /* Druck-Feedback: fühlt sich reaktiv an */
+.jarvis-act-cbtn.is-yes { background: hsl(var(--accent-100)); color: #fff; }
+.jarvis-act-cbtn.is-yes:hover { background: hsl(var(--accent-100) / 0.88); }
+.jarvis-act-cbtn.is-no { background: hsl(var(--text-100) / 0.08); color: hsl(var(--text-300)); }
+.jarvis-act-cbtn.is-no:hover { background: hsl(var(--text-100) / 0.14); color: hsl(var(--text-100)); }
+@keyframes jarvis-act-confirm-in { from { opacity: 0; transform: translateY(-3px) scale(0.985); } }
+
+/* Reduced-Motion: Bewegung raus, Opazität/Farbe bleibt (verständnisfördernd). */
+@media (prefers-reduced-motion: reduce) {
+  .jarvis-act-chip,
+  .jarvis-act-confirm { animation: none; }
+  .jarvis-act-chip[data-kind="pending"] svg { animation: none; }
+  .jarvis-act-cbtn { transition: background 140ms ease; }
+  .jarvis-act-cbtn:active { transform: none; }
+}
+
+/* ---------- Begrüßungs-Header: beim Chat-Start ausblenden (Animation via Web Animations API in app.js) ---------- */
+header.jv-welcome { overflow: hidden; }
+
+/* ================= Sidebar: Chat-Verlauf ("Recently used"), Collapse, Suche ================= */
+.jv-recents-sect { display: flex; flex-direction: column; gap: 2px; margin-top: 2px; }
+.jv-recents-head {
+  display: flex; align-items: center; gap: 6px;
+  padding: var(--df-group-pt, 12px) var(--df-row-px, 8px) 4px
+           calc(var(--df-row-px, 8px) + (var(--df-leading-slot, 24px) - var(--df-icon-size, 16px)) / 2);
+}
+.jv-recents-title { flex: 1 1 auto; min-width: 0; font-size: 12px; color: hsl(var(--text-400) / 0.8); }
+.jv-recents-sort {
+  flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; padding: 0; border: 0; border-radius: 6px; cursor: pointer;
+  color: hsl(var(--text-500)); background: transparent;
+  opacity: 0; transition: opacity 150ms ease, color 150ms ease, background 150ms ease;
+}
+.jv-recents-sect:hover .jv-recents-sort, .jv-recents-sort:focus-visible { opacity: 1; }
+.jv-recents-sort:hover { color: hsl(var(--text-200)); background: hsl(var(--text-100) / 0.08); }
+.jv-recents-sort svg { width: 15px; height: 15px; }
+.jv-recents-list { display: flex; flex-direction: column; gap: 1px; }
+.jv-recents-empty { padding: 4px 10px; font-size: 12px; color: hsl(var(--text-500)); }
+.jv-recents-row {
+  position: relative; display: flex; align-items: center; gap: 8px;
+  height: var(--df-row-h, 32px); padding: 0 var(--df-row-px, 8px);
+  border-radius: var(--df-radius-pill, 8px); cursor: pointer;
+  color: hsl(var(--text-300)); font-size: var(--df-row-font, 13px);
+  transition: background 120ms ease, color 120ms ease;
+}
+.jv-recents-row:hover { background: var(--df-hover, hsl(var(--text-100) / 0.06)); color: hsl(var(--text-100)); }
+.jv-recents-row.is-active { background: var(--df-selected, hsl(var(--text-100) / 0.1)); color: hsl(var(--text-000, var(--text-100))); }
+.jv-recents-row:focus-visible { outline: none; box-shadow: inset 0 0 0 1px hsl(var(--accent-100)); }
+.jv-recents-label { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.jv-recents-del {
+  flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; padding: 0; border: 0; border-radius: 5px; cursor: pointer;
+  color: hsl(var(--text-500)); background: transparent;
+  opacity: 0; transition: opacity 120ms ease, color 120ms ease, background 120ms ease;
+}
+.jv-recents-row:hover .jv-recents-del, .jv-recents-del:focus-visible { opacity: 1; }
+.jv-recents-del:hover { color: var(--core-red, #ff5c52); background: hsl(var(--text-100) / 0.08); }
+
+/* Collapse: Sidebar ausblenden (Breite -> 0, entfernt auch den Content-Versatz), Content rückt nach. */
+.dframe-sidebar { transition: opacity 200ms cubic-bezier(0.23, 1, 0.32, 1), transform 200ms cubic-bezier(0.23, 1, 0.32, 1); }
+.dframe-content-inner { transition: padding-left 220ms cubic-bezier(0.23, 1, 0.32, 1); }
+html.jv-sidebar-collapsed { --df-sidebar-width: 0px; }
+html.jv-sidebar-collapsed .dframe-sidebar { opacity: 0; transform: translateX(-14px); pointer-events: none; }
+.jv-sidebar-expand {
+  position: fixed; top: 12px; left: 12px; z-index: 60;
+  display: none; align-items: center; justify-content: center;
+  width: 34px; height: 34px; padding: 0; border-radius: 9px; cursor: pointer;
+  color: hsl(var(--text-200)); background: hsl(var(--bg-300) / 0.9);
+  border: 1px solid hsl(var(--border-100, var(--text-100)) / 0.14);
+  backdrop-filter: blur(8px);
+  transition: background 140ms ease, transform 130ms ease, opacity 160ms ease;
+}
+.jv-sidebar-expand:hover { background: hsl(var(--bg-400)); }
+.jv-sidebar-expand:active { transform: scale(0.96); }
+html.jv-sidebar-collapsed .jv-sidebar-expand { display: inline-flex; animation: jv-expand-in 200ms cubic-bezier(0.23, 1, 0.32, 1) both; }
+@keyframes jv-expand-in { from { opacity: 0; transform: translateX(-8px) scale(0.96); } to { opacity: 1; transform: none; } }
+
+/* Chat-Suche (Overlay reuse jv-an-* Basis) */
+.jv-search-input { width: 100%; margin-bottom: 10px; }
+.jv-search-results { display: flex; flex-direction: column; gap: 2px; max-height: min(52vh, 440px); overflow-y: auto; }
+.jv-search-empty { padding: 14px 4px; font-size: 13px; color: hsl(var(--text-500)); text-align: center; }
+.jv-search-row {
+  display: flex; align-items: center; gap: 10px; padding: 9px 11px; border-radius: 9px; cursor: pointer;
+  transition: background 120ms ease;
+}
+.jv-search-row:hover, .jv-search-row:focus-visible { outline: none; background: hsl(var(--text-100) / 0.07); }
+.jv-search-t { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; color: hsl(var(--text-100)); }
+.jv-search-d { flex: 0 0 auto; font-size: 11px; color: hsl(var(--text-500)); font-variant-numeric: tabular-nums; }
+
+@media (prefers-reduced-motion: reduce) {
+  .dframe-sidebar, .dframe-content-inner, .jv-sidebar-expand { transition: none; }
+  html.jv-sidebar-collapsed .jv-sidebar-expand { animation: none; }
+  .jv-sidebar-expand:active { transform: none; }
+}
+
+/* ================= Erweitertes Markdown in Antworten (Tabellen, Task-Lists, Bilder, hr) ========= */
+.epitaxy-markdown .jv-md-table {
+  border-collapse: collapse;
+  width: auto;
+  max-width: 100%;
+  margin: 10px 0;
+  font-size: 0.94em;
+  display: block;
+  overflow-x: auto;
+}
+.epitaxy-markdown .jv-md-table th,
+.epitaxy-markdown .jv-md-table td {
+  border: 1px solid hsl(var(--text-100) / 0.14);
+  padding: 6px 11px;
+  text-align: left;
+  vertical-align: top;
+}
+.epitaxy-markdown .jv-md-table thead th {
+  background: hsl(var(--text-100) / 0.05);
+  font-weight: 600;
+}
+.epitaxy-markdown .jv-md-table tbody tr:nth-child(even) td { background: hsl(var(--text-100) / 0.025); }
+.epitaxy-markdown li.jv-md-task { list-style: none; margin-left: -1.2em; }
+.epitaxy-markdown li.jv-md-task input { margin-right: 6px; vertical-align: middle; accent-color: hsl(var(--accent-100)); }
+.epitaxy-markdown .jv-md-img { max-width: 100%; height: auto; border-radius: 8px; margin: 8px 0; display: block; }
+.epitaxy-markdown del { opacity: 0.65; }
+.epitaxy-markdown hr { border: 0; border-top: 1px solid hsl(var(--text-100) / 0.14); margin: 16px 0; }
+.epitaxy-markdown blockquote {
+  margin: 8px 0;
+  padding: 2px 0 2px 12px;
+  border-left: 3px solid hsl(var(--accent-100) / 0.5);
+  color: hsl(var(--text-300));
+}

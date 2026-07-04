@@ -1,0 +1,281 @@
+/* Jarvis – eigenes Chat-CSS (Oddware). Von Grund auf geschrieben.
+   Dieser Teil deckt den Composer (Prompt-Box + Toolbar) ab.
+   Nutzt die bestehenden Design-Tokens (--bg-*, --text-*, --accent-*), Schrift ist Rubik. */
+
+/* ---------- Prompt-Box (abgerundete Eingabe-Pille mit Senden-Pfeil) ---------- */
+.jv-inputbar {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  width: 100%;
+  background: hsl(var(--bg-000) / 0.9);
+  border: 1px solid hsl(var(--text-100) / 0.1);
+  border-radius: 16px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 8px 24px -14px rgba(0, 0, 0, 0.5);
+  transition: border-color 200ms cubic-bezier(0.23, 1, 0.32, 1),
+    box-shadow 200ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.jv-inputbar:focus-within {
+  border-color: hsl(var(--text-100) / 0.18);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 10px 30px -14px rgba(0, 0, 0, 0.55);
+}
+
+.jv-inputbar .jv-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-height: 218px;
+  overflow-y: auto;
+  padding: 13px 4px 13px 16px;
+  outline: none;
+  border: 0;
+  color: hsl(var(--text-100));
+  font-family: var(--font-ui-sans);
+  font-size: 14px;
+  line-height: 1.45;
+}
+.jv-inputbar .jv-input p { margin: 0; }
+/* Placeholder-Mechanismus: app.js toggelt is-empty/is-editor-empty auf dem <p> */
+.jv-inputbar .jv-input p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: hsl(var(--text-100) / 0.32);
+  pointer-events: none;
+  float: left;
+  height: 0;
+  white-space: nowrap;
+}
+
+/* Senden-Pfeil unten rechts in der Pille */
+.jv-send {
+  flex: 0 0 auto;
+  align-self: flex-end;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  margin: 0 8px 8px 4px;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+  color: hsl(var(--text-100));
+  background: hsl(var(--text-100) / 0.08);
+  transition: background 140ms cubic-bezier(0.23, 1, 0.32, 1), transform 130ms cubic-bezier(0.23, 1, 0.32, 1), opacity 140ms ease;
+}
+.jv-send:hover:not(:disabled) { background: hsl(var(--text-100) / 0.14); }
+.jv-send:active:not(:disabled) { transform: scale(0.94); }
+.jv-send:disabled { opacity: 0.4; cursor: default; }
+.jv-send svg { width: 18px; height: 18px; }
+
+/* ---------- Toolbar unter der Prompt-Box ---------- */
+.jv-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 2px 2px;
+}
+.jv-toolbar-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.jv-toolbar-right { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+
+/* gemeinsame Basis für die Toolbar-Buttons */
+.jv-tb-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: var(--font-ui-sans);
+  font-size: 13px;
+  font-weight: 400;
+  color: hsl(var(--text-300));
+  background: transparent;
+  transition: background 130ms cubic-bezier(0.23, 1, 0.32, 1), color 130ms ease, transform 120ms ease;
+  outline: none;
+}
+.jv-tb-btn:hover { background: hsl(var(--text-100) / 0.08); color: hsl(var(--text-100)); }
+.jv-tb-btn:active { transform: scale(0.97); }
+.jv-tb-btn:focus-visible { box-shadow: 0 0 0 2px hsl(var(--accent-100) / 0.5); }
+.jv-tb-btn svg { width: 18px; height: 18px; flex: 0 0 auto; }
+.jv-tb-icon { width: 34px; justify-content: center; padding: 0; } /* icon-only (Plus) */
+
+/* Mode-Pille (Farbe setzt app.js per inline style je Modus) */
+.jv-tb-mode { font-weight: 400; }
+
+/* Mic-Pille (Aufnahme + Diktat-Einstellungen als ein Segment) */
+.jv-mic-pill {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  border-radius: 8px;
+  background: transparent;
+  transition: background 130ms ease;
+}
+.jv-mic-pill:hover { background: hsl(var(--text-100) / 0.06); }
+.jv-mic-btn, .jv-mic-set {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  padding: 0 6px;
+  border: 0;
+  background: transparent;
+  color: hsl(var(--text-300));
+  cursor: pointer;
+  border-radius: 8px;
+  outline: none;
+  transition: color 130ms ease, background 130ms ease;
+}
+.jv-mic-btn { padding-left: 9px; }
+.jv-mic-set { padding-right: 9px; }
+.jv-mic-btn:hover, .jv-mic-set:hover { color: hsl(var(--text-100)); }
+.jv-mic-btn svg, .jv-mic-set svg { width: 17px; height: 17px; }
+/* Zustände, die app.js über data-* / Klassen am Pill setzt */
+.jv-mic-pill[data-recording] { background: hsl(var(--accent-100) / 0.16); }
+.jv-mic-pill[data-recording] .jv-mic-btn { color: hsl(var(--accent-100)); }
+.jv-mic-pill[data-error] { background: hsl(var(--core-red, 0 73% 59%) / 0.16); }
+
+/* Model + Effort rechts */
+.jv-tb-model, .jv-tb-effort { color: hsl(var(--text-200)); }
+.jv-tb-effort { font-weight: 400; }
+
+/* ============================== Chat-Bereich (Welcome + Transkript) ============================== */
+/* .dframe-content / .dframe-content-inner werden in theme.css positioniert (Sidebar-Abstand);
+   .epitaxy-composer-width zentriert die Inhalte (max-width). */
+.jv-chat {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+.jv-welcome-head {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  padding: 12px 0 24px;
+}
+.jv-welcome-title {
+  margin: 0;
+  font-family: var(--font-ui-sans);
+  font-size: clamp(24px, 2.6vw, 30px);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: hsl(var(--text-100));
+}
+.jv-chat-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  position: relative;
+}
+.jv-transcript-region { height: 100%; }
+.jv-transcript-scroll {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+}
+.jv-composer-wrap {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 0 16px;
+}
+
+/* ============================== Sidebar (eigenes Markup) ============================== */
+.jv-skip {
+  position: absolute; left: -9999px; top: 0; z-index: 50;
+}
+.jv-skip:focus {
+  left: 8px; top: 8px; padding: 6px 12px; border-radius: 8px;
+  background: hsl(var(--bg-000)); color: hsl(var(--text-100));
+  box-shadow: 0 0 0 2px hsl(var(--accent-100));
+}
+
+.jv-sb-chrome {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  flex: 0 0 auto;
+  padding: 0 8px 0 12px;
+}
+.jv-sb-brand {
+  font-family: var(--font-ui-sans);
+  font-weight: 500;
+  font-size: 15px;
+  letter-spacing: 0.14em;
+  color: hsl(var(--text-100));
+  text-decoration: none;
+}
+.jv-sb-chrome-actions { display: flex; align-items: center; gap: 2px; margin-left: auto; }
+.jv-sb-icobtn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; padding: 0;
+  border: 0; border-radius: 7px; cursor: pointer;
+  color: hsl(var(--text-300)); background: transparent;
+  transition: background 130ms cubic-bezier(0.23, 1, 0.32, 1), color 130ms ease;
+}
+.jv-sb-icobtn:hover { background: hsl(var(--text-100) / 0.08); color: hsl(var(--text-100)); }
+.jv-sb-icobtn:focus-visible { outline: none; box-shadow: inset 0 0 0 1px hsl(var(--accent-100)); }
+.jv-sb-icobtn svg { width: 17px; height: 17px; }
+
+.jv-sb-body {
+  display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0;
+  gap: 2px; padding: 4px 8px 6px;
+}
+.jv-sb-row {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%; height: 34px; padding: 0 10px;
+  border: 0; border-radius: 8px; cursor: pointer;
+  font-family: var(--font-ui-sans); font-size: 14px; font-weight: 400;
+  color: hsl(var(--text-300)); background: transparent; text-align: left;
+  transition: background 120ms cubic-bezier(0.23, 1, 0.32, 1), color 120ms ease;
+}
+.jv-sb-row:hover { background: hsl(var(--text-100) / 0.06); color: hsl(var(--text-100)); }
+.jv-sb-row.is-selected { background: hsl(var(--text-100) / 0.1); color: hsl(var(--text-100)); }
+.jv-sb-row:focus-visible { outline: none; box-shadow: inset 0 0 0 1px hsl(var(--accent-100)); }
+.jv-sb-ico {
+  flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; color: currentColor;
+}
+.jv-sb-ico svg { width: 17px; height: 17px; }
+.jv-sb-label { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.jv-sb-kbd {
+  flex: 0 0 auto; margin-left: auto; font-family: var(--font-ui-sans); font-size: 11px;
+  color: hsl(var(--text-500)); opacity: 0; transition: opacity 120ms ease;
+}
+.jv-sb-row:hover .jv-sb-kbd { opacity: 1; }
+
+.jv-sb-scroll {
+  flex: 1 1 auto; min-height: 0; overflow-y: auto;
+  display: flex; flex-direction: column;
+  padding: 8px 0 8px; margin-top: 4px;
+}
+
+.jv-sb-footer { flex: 0 0 auto; padding: 6px 8px 8px; }
+.jv-sb-account {
+  display: inline-flex; align-items: center; gap: 8px;
+  max-width: 100%; height: 32px; padding: 0 8px 0 6px;
+  border: 0; border-radius: 999px; background: transparent; cursor: pointer;
+  color: hsl(var(--text-300));
+}
+.jv-sb-avatar { width: 20px; height: 20px; border-radius: 50%; background: hsl(var(--text-100) / 0.12); flex: 0 0 auto; }
+.jv-sb-account-name { font-size: 13px; }
+
+/* Die drei Toolbar-Icons (+, Mikrofon, Lautsprecher) exakt gleich groß – gewinnt gegen
+   frühere Regeln und die Inline-Größen der HI-SVGs. */
+.jv-tb-icon svg,
+.jv-mic-btn svg,
+.jarvis-tts-btn svg {
+  width: 17px !important;
+  height: 17px !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jv-inputbar, .jv-send, .jv-tb-btn { transition: none; }
+  .jv-send:active, .jv-tb-btn:active { transform: none; }
+}

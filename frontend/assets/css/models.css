@@ -1,0 +1,984 @@
+/* Jarvis – Modell-Bibliothek. Nutzt die Design-Tokens aus theme.css
+   (hsl(var(--bg-100)) etc.) und übernimmt Easing/Popup-Gefühl aus app.css. */
+
+:root {
+  /* Starkes ease-out wie in jarvis.css – gibt Animationen Punch */
+  --mdl-ease: cubic-bezier(0.23, 1, 0.32, 1);
+  --mdl-radius: 16px;
+  --mdl-radius-sm: 10px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: hsl(var(--bg-100));
+  color: hsl(var(--text-100));
+}
+
+#models-app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+/* ----------------------------------------------------------------------------
+   Kopfbereich (sticky)
+   ------------------------------------------------------------------------- */
+.mdl-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px clamp(16px, 4vw, 40px) 14px;
+  background: hsl(var(--bg-100) / 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid hsl(var(--border-100) / 0.12);
+}
+
+.mdl-header-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+/* Zurück-Button: Pfeil-Icon + Text */
+.mdl-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 34px;
+  padding: 0 12px 0 9px;
+  font: inherit;
+  font-size: 14px;
+  color: hsl(var(--text-100));
+  text-decoration: none;
+  background: hsl(var(--bg-300));
+  border: 1px solid hsl(var(--border-100) / 0.14);
+  border-radius: var(--mdl-radius-sm);
+  cursor: pointer;
+  transition: background 140ms var(--mdl-ease), transform 140ms var(--mdl-ease);
+}
+.mdl-back .mdl-ico { width: 16px; height: 16px; flex: 0 0 auto; }
+.mdl-back:active { transform: scale(0.97); }
+
+.mdl-title {
+  margin: 0;
+  font-size: clamp(20px, 3vw, 26px);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: hsl(var(--text-100));
+}
+
+.mdl-count {
+  margin-left: auto;
+  font-size: 13px;
+  color: hsl(var(--text-500));
+  white-space: nowrap;
+}
+
+/* Hinweisleiste (Ollama offline) – dezent, einklappbar via [hidden] */
+.mdl-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: hsl(var(--text-300));
+  background: hsl(var(--bg-300) / 0.6);
+  border: 1px solid hsl(var(--border-100) / 0.12);
+  border-radius: var(--mdl-radius-sm);
+}
+.mdl-notice .mdl-ico { width: 16px; height: 16px; flex: 0 0 auto; color: hsl(var(--text-500)); }
+.mdl-notice[hidden] { display: none; }
+
+/* Steuerleiste: Suche, Chips, Sortierung */
+.mdl-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.mdl-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1 1 240px;
+  min-width: 200px;
+}
+.mdl-search .mdl-ico {
+  position: absolute;
+  left: 11px;
+  width: 16px;
+  height: 16px;
+  color: hsl(var(--text-500));
+  pointer-events: none;
+}
+.mdl-search input {
+  width: 100%;
+  height: 38px;
+  padding: 0 12px 0 34px;
+  font: inherit;
+  font-size: 14px;
+  color: hsl(var(--text-100));
+  background: hsl(var(--bg-300));
+  border: 1px solid hsl(var(--border-100) / 0.14);
+  border-radius: var(--mdl-radius-sm);
+  outline: none;
+  transition: border-color 140ms var(--mdl-ease), box-shadow 140ms var(--mdl-ease);
+}
+.mdl-search input::placeholder { color: hsl(var(--text-500)); }
+.mdl-search input:focus {
+  border-color: hsl(var(--accent-100) / 0.7);
+  box-shadow: 0 0 0 3px hsl(var(--accent-100) / 0.18);
+}
+
+/* Filter-Chips */
+.mdl-chips {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.mdl-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  font: inherit;
+  font-size: 13px;
+  color: hsl(var(--text-300));
+  background: hsl(var(--bg-300));
+  border: 1px solid hsl(var(--border-100) / 0.14);
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 130ms var(--mdl-ease), color 130ms var(--mdl-ease),
+    border-color 130ms var(--mdl-ease), transform 130ms var(--mdl-ease);
+}
+.mdl-chip .mdl-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  background: currentColor;
+  opacity: 0.7;
+}
+.mdl-chip:active { transform: scale(0.96); }
+.mdl-chip[aria-pressed="true"] {
+  color: hsl(var(--oncolor-100));
+  background: hsl(var(--accent-100));
+  border-color: transparent;
+}
+
+/* Sortierung */
+.mdl-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-left: auto;
+  font-size: 13px;
+  color: hsl(var(--text-500));
+}
+/* Custom Dropdown (ersetzt natives <select> – projektweit nur custom Popups). */
+.mdl-sort-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 10px;
+  font: inherit;
+  font-size: 13px;
+  color: hsl(var(--text-100));
+  background: hsl(var(--bg-300));
+  border: 1px solid hsl(var(--border-100) / 0.14);
+  border-radius: var(--mdl-radius-sm);
+  cursor: pointer;
+  outline: none;
+  transition: border-color 140ms var(--mdl-ease);
+}
+.mdl-sort-trigger:hover { border-color: hsl(var(--border-100) / 0.3); }
+.mdl-sort-trigger[aria-expanded="true"],
+.mdl-sort-trigger:focus-visible { border-color: hsl(var(--accent-100) / 0.7); }
+.mdl-sort-caret { flex: 0 0 auto; color: hsl(var(--text-400)); transition: transform 160ms var(--mdl-ease); }
+.mdl-sort-trigger[aria-expanded="true"] .mdl-sort-caret { transform: rotate(180deg); }
+.mdl-sort-menu {
+  position: fixed;
+  z-index: 1000;
+  min-width: 170px;
+  display: flex;
+  flex-direction: column;
+  padding: 5px;
+  background: hsl(var(--bg-300));
+  border: 1px solid hsl(var(--border-100) / 0.16);
+  border-radius: var(--mdl-radius-sm);
+  box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.55);
+  opacity: 0;
+  transform: scale(0.97) translateY(-4px);
+  transform-origin: top left;
+  pointer-events: none;
+  transition: opacity 150ms var(--mdl-ease), transform 150ms var(--mdl-ease);
+}
+.mdl-sort-menu[data-open="true"] { opacity: 1; transform: none; pointer-events: auto; }
+.mdl-sort-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  padding: 7px 9px;
+  border: 0;
+  background: transparent;
+  border-radius: 7px;
+  font: inherit;
+  font-size: 13px;
+  color: hsl(var(--text-100));
+  cursor: pointer;
+  transition: background 120ms var(--mdl-ease);
+}
+.mdl-sort-item:hover { background: hsl(var(--text-100) / 0.08); }
+.mdl-sort-item span { flex: 1 1 auto; }
+.mdl-sort-check { flex: 0 0 auto; color: hsl(var(--accent-100)); opacity: 0; }
+.mdl-sort-item[aria-checked="true"] .mdl-sort-check { opacity: 1; }
+
+/* ----------------------------------------------------------------------------
+   Grid / Karten
+   ------------------------------------------------------------------------- */
+.mdl-grid {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+  padding: 20px clamp(16px, 4vw, 40px) 56px;
+  align-content: start;
+}
+/* Trigger fürs Nachladen der Library beim Scrollen (unsichtbar, volle Zeilenbreite) */
+.mdl-sentinel { grid-column: 1 / -1; height: 1px; }
+
+/* Dezenter Lade-Indikator am Listenende – nur während des Nachladens sichtbar/animiert. */
+.mdl-more {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  align-items: center;
+  min-height: 26px;
+  padding: 6px 0 2px;
+  opacity: 0;
+  transition: opacity 160ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.mdl-more.is-loading { opacity: 1; }
+.mdl-more i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: hsl(var(--accent-100));
+  transform: scale(0.7);
+  opacity: 0.45;
+  will-change: transform, opacity;
+}
+.mdl-more.is-loading i { animation: mdl-more-bounce 900ms cubic-bezier(0.23, 1, 0.32, 1) infinite; }
+.mdl-more.is-loading i:nth-child(2) { animation-delay: 120ms; }
+.mdl-more.is-loading i:nth-child(3) { animation-delay: 240ms; }
+@keyframes mdl-more-bounce {
+  0%, 100% { transform: scale(0.7); opacity: 0.4; }
+  40%      { transform: scale(1);   opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mdl-more i { transform: scale(0.85); opacity: 0.7; }
+  .mdl-more.is-loading i { animation: none; }
+}
+
+.mdl-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: hsl(var(--bg-200));
+  border: 1px solid hsl(var(--text-100) / 0.08);
+  border-radius: var(--mdl-radius);
+  /* Schatten in Hintergrundfarbe getönt, nicht reines Schwarz */
+  box-shadow: 0 1px 2px hsl(var(--bg-400) / 0.4);
+  transition: border-color 160ms var(--mdl-ease), transform 160ms var(--mdl-ease),
+    box-shadow 160ms var(--mdl-ease);
+  /* Stagger-Eintritt: nie aus scale(0), immer aus scale(0.98)+opacity */
+  opacity: 0;
+  transform: translateY(8px) scale(0.99);
+  animation: mdl-card-in 320ms var(--mdl-ease) forwards;
+  animation-delay: calc(var(--i, 0) * 28ms);
+}
+@keyframes mdl-card-in {
+  to { opacity: 1; transform: none; }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .mdl-card:hover {
+    border-color: hsl(var(--text-100) / 0.16);
+    transform: translateY(-2px);
+    box-shadow: 0 14px 34px -18px hsl(var(--bg-400) / 0.9);
+  }
+  .mdl-card:hover .mdl-hero { transform: scale(1.04); }
+}
+
+/* ---- Hero-Bild (16:9) mit deterministischem Verlauf-Fallback ----------- */
+.mdl-hero-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-top-left-radius: var(--mdl-radius);
+  border-top-right-radius: var(--mdl-radius);
+  /* Fallback: immer sichtbarer Verlauf aus dem Namen-Hash.
+     Bleibt stehen, falls das <img> nicht lädt (offline). */
+  background:
+    radial-gradient(120% 120% at 20% 0%,
+      hsl(calc(var(--hero-hue, 250) * 1deg) 60% 20%) 0%,
+      hsl(calc((var(--hero-hue, 250) + 40) * 1deg) 55% 9%) 55%,
+      hsl(var(--bg-200)) 100%);
+}
+.mdl-hero {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  /* Sanft einblenden; transform für Hover-Zoom (GPU-beschleunigt) */
+  opacity: 1;
+  transform: scale(1);
+  transition: transform 320ms var(--mdl-ease), opacity 240ms var(--mdl-ease);
+}
+/* Bildfehler -> nur der Verlauf bleibt sichtbar */
+.mdl-hero.is-failed { opacity: 0; }
+/* Leichte Abdunklung unten für besseren Übergang zum Body */
+.mdl-hero-wrap::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 55%, hsl(var(--bg-200) / 0.55) 100%);
+  pointer-events: none;
+}
+
+.mdl-body {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  padding: 16px 18px 18px;
+  flex: 1 1 auto;
+}
+
+.mdl-card-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.mdl-card-name {
+  margin: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: hsl(var(--text-100));
+  overflow-wrap: anywhere;
+}
+
+.mdl-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 12px;
+  color: hsl(var(--text-500));
+}
+.mdl-meta span { display: inline-flex; align-items: center; gap: 5px; }
+.mdl-meta .mdl-ico { width: 13px; height: 13px; }
+
+.mdl-desc {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: hsl(var(--text-300));
+  /* Max. 2–3 Zeilen, dezent */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ---- Badge-Reihe (Fähigkeiten + Größen-Chips) -------------------------- */
+.mdl-badges { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.mdl-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 21px;
+  padding: 0 8px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  border-radius: 6px;
+  color: hsl(var(--text-300));
+  background: hsl(var(--bg-400) / 0.5);
+  border: 1px solid hsl(var(--text-100) / 0.08);
+  white-space: nowrap;
+}
+.mdl-badge[data-cap="vision"]    { color: #c6a4ff; background: #2e234d33; border-color: #463a7044; }
+.mdl-badge[data-cap="tools"]     { color: #a99dff; background: #26224d33; border-color: #3b3a7044; }
+.mdl-badge[data-cap="embedding"] { color: #8fe3b0; background: #1d3e2c33; border-color: #2b5d4244; }
+.mdl-badge[data-cap="thinking"]  { color: #ffcf8a; background: #4a361a33; border-color: #6e522844; }
+.mdl-badge[data-cap="audio"]     { color: #ff9fb8; background: #4a1f2c33; border-color: #6e2f4244; }
+.mdl-badge-hf                    { color: #ffd45f; background: #4a3a1033; border-color: #6e562844; }
+
+/* Installiert-Badge im Kopf */
+.mdl-badge.is-installed {
+  color: #8fe3b0;
+  background: #1d3e2c4d;
+  border-color: #2b5d4255;
+}
+.mdl-badge.is-installed .mdl-ico { width: 12px; height: 12px; margin-right: 3px; }
+
+/* Größen-Chips – auswählbar, blau getönt */
+.mdl-chips-sizes { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.mdl-size-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 22px;
+  padding: 0 9px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  color: #7ec8ff;
+  background: #1633494d;
+  border: 1px solid #2c5a8055;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 130ms var(--mdl-ease), color 130ms var(--mdl-ease),
+    border-color 130ms var(--mdl-ease), transform 120ms var(--mdl-ease);
+}
+.mdl-size-chip .mdl-ico { width: 11px; height: 11px; }
+.mdl-size-chip:active { transform: scale(0.94); }
+@media (hover: hover) and (pointer: fine) {
+  .mdl-size-chip:hover { border-color: #2c5a80aa; color: #a9dcff; }
+}
+/* Aktive (gewählte) Größe – kräftiges Blau */
+.mdl-size-chip[aria-pressed="true"] {
+  color: hsl(var(--oncolor-100));
+  background: #2f72c0;
+  border-color: transparent;
+}
+/* Installierte Größe – grünes Häkchen, dezent grün getönt */
+.mdl-size-chip.is-installed { color: #8fe3b0; border-color: #2b5d4255; background: #1d3e2c4d; }
+.mdl-size-chip.is-installed[aria-pressed="true"] {
+  color: hsl(var(--oncolor-100));
+  background: #2f8f5e;
+  border-color: transparent;
+}
+
+/* ---- Aktions-Sektion: Trennlinie + Tabs + Box + Lade-Zeile ------------- */
+.mdl-action {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid hsl(var(--text-100) / 0.08);
+}
+
+/* Segmented Tabs */
+.mdl-tabs {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  padding: 3px;
+  background: hsl(var(--bg-400) / 0.55);
+  border: 1px solid hsl(var(--text-100) / 0.08);
+  border-radius: var(--mdl-radius-sm);
+}
+/* Gleitender Indikator (nur transform animiert -> GPU).
+   Breite = eine Spalte: Innenbreite (100% - 6px Padding - 2px Gap) / 2.
+   Zweiter Tab -> translateX um eine Spaltenbreite + Gap. */
+.mdl-tabs .mdl-tab-glider {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: calc((100% - 8px) / 2);
+  border-radius: calc(var(--mdl-radius-sm) - 3px);
+  background: hsl(var(--bg-200));
+  box-shadow: 0 1px 2px hsl(var(--bg-400) / 0.6);
+  transform: translateX(0);
+  transition: transform 240ms var(--mdl-ease);
+  will-change: transform;
+}
+.mdl-tabs[data-tab="jarvis"] .mdl-tab-glider {
+  transform: translateX(calc(100% + 2px));
+}
+.mdl-tab {
+  position: relative;
+  z-index: 1;
+  height: 28px;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: hsl(var(--text-500));
+  background: transparent;
+  border: 0;
+  border-radius: calc(var(--mdl-radius-sm) - 3px);
+  cursor: pointer;
+  transition: color 180ms var(--mdl-ease);
+}
+.mdl-tab[aria-selected="true"] { color: hsl(var(--text-100)); }
+.mdl-tab:active { transform: scale(0.97); }
+
+/* Aktions-Box (Inhalt je Tab) */
+.mdl-action-box { display: flex; flex-direction: column; gap: 8px; }
+
+/* Befehls-Box (Tab Ollama) */
+.mdl-cmd {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 6px 0 10px;
+  background: hsl(var(--bg-400) / 0.6);
+  border: 1px solid hsl(var(--text-100) / 0.08);
+  border-radius: var(--mdl-radius-sm);
+  overflow: hidden;
+}
+.mdl-cmd-prompt { display: inline-flex; color: hsl(var(--text-500)); flex: 0 0 auto; }
+.mdl-cmd-prompt .mdl-ico { width: 14px; height: 14px; }
+.mdl-cmd-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 12.5px;
+  color: hsl(var(--text-100));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mdl-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: 0 0 auto;
+  height: 28px;
+  padding: 0 10px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  color: hsl(var(--text-300));
+  background: hsl(var(--bg-200));
+  border: 1px solid hsl(var(--text-100) / 0.1);
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background 130ms var(--mdl-ease), color 130ms var(--mdl-ease),
+    border-color 130ms var(--mdl-ease), transform 120ms var(--mdl-ease);
+}
+.mdl-copy .mdl-ico { width: 14px; height: 14px; }
+.mdl-copy:active { transform: scale(0.96); }
+@media (hover: hover) and (pointer: fine) {
+  .mdl-copy:hover { color: hsl(var(--text-100)); border-color: hsl(var(--text-100) / 0.2); }
+}
+/* Kopiert-Feedback (2 s) */
+.mdl-copy.is-copied {
+  color: #8fe3b0;
+  border-color: #2b5d4266;
+  background: #1d3e2c33;
+}
+
+/* Primär-Button (Tab "In Jarvis") */
+.mdl-set {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  height: 38px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: hsl(var(--oncolor-100));
+  background: hsl(var(--accent-100));
+  border: 1px solid transparent;
+  border-radius: var(--mdl-radius-sm);
+  cursor: pointer;
+  transition: background 140ms var(--mdl-ease), transform 130ms var(--mdl-ease),
+    opacity 140ms var(--mdl-ease);
+}
+.mdl-set .mdl-ico { width: 15px; height: 15px; }
+.mdl-set:active { transform: scale(0.98); }
+@media (hover: hover) and (pointer: fine) {
+  .mdl-set:hover { background: hsl(var(--accent-100) / 0.88); }
+}
+.mdl-set:disabled {
+  cursor: default;
+  opacity: 0.45;
+  background: hsl(var(--bg-400));
+  color: hsl(var(--text-300));
+}
+.mdl-set-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  color: hsl(var(--text-500));
+}
+.mdl-set-hint .mdl-ico { width: 13px; height: 13px; }
+
+/* ---- Lade-Zeile für die gewählte Größe (Download beibehalten) ---------- */
+.mdl-dl-row { display: flex; }
+.mdl-dl {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  height: 34px;
+  padding: 0 12px;
+  overflow: hidden;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: hsl(var(--text-100));
+  background: hsl(var(--bg-400) / 0.6);
+  border: 1px solid hsl(var(--text-100) / 0.1);
+  border-radius: var(--mdl-radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 140ms var(--mdl-ease), transform 130ms var(--mdl-ease),
+    border-color 140ms var(--mdl-ease), opacity 140ms var(--mdl-ease);
+}
+.mdl-dl .mdl-ico { width: 14px; height: 14px; position: relative; z-index: 1; }
+.mdl-dl .mdl-dl-label { position: relative; z-index: 1; }
+.mdl-dl:active { transform: scale(0.98); }
+@media (hover: hover) and (pointer: fine) {
+  .mdl-dl:hover { border-color: hsl(var(--accent-100) / 0.5); color: hsl(var(--text-100)); }
+}
+
+/* Fortschritts-Füllung (clip-path-frei: einfacher animierter Hintergrund) */
+.mdl-dl .mdl-dl-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0%;
+  z-index: 0;
+  background: hsl(var(--accent-100) / 0.32);
+  transition: width 200ms var(--mdl-ease);
+}
+
+/* Pull läuft: Button als Statusanzeige, nicht klickbar */
+.mdl-dl[data-state="busy"] { cursor: default; }
+.mdl-dl[data-state="error"] {
+  background: hsl(var(--danger-100) / 0.18);
+  border-color: hsl(var(--danger-100) / 0.5);
+  color: hsl(var(--danger-000));
+}
+
+/* Bereits installierte Größe: kein Button, nur Häkchen-Status */
+.mdl-size-installed {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  height: 34px;
+  padding: 0 12px;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: #8fe3b0;
+  background: #1d3e2c4d;
+  border: 1px solid #2b5d4255;
+  border-radius: var(--mdl-radius-sm);
+}
+.mdl-size-installed .mdl-ico { width: 14px; height: 14px; }
+
+/* ----------------------------------------------------------------------------
+   Leer-Zustand
+   ------------------------------------------------------------------------- */
+.mdl-empty {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 80px 20px;
+  text-align: center;
+  color: hsl(var(--text-500));
+}
+.mdl-empty .mdl-ico { width: 40px; height: 40px; opacity: 0.5; }
+.mdl-empty-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: hsl(var(--text-300));
+}
+.mdl-empty-sub { font-size: 13px; max-width: 380px; }
+
+/* Scrollbar – an jarvis.css angelehnt */
+*::-webkit-scrollbar { width: 11px; }
+*::-webkit-scrollbar-thumb {
+  background: hsl(var(--text-500) / 0.35);
+  border-radius: 8px;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover { background: hsl(var(--text-500) / 0.5); background-clip: padding-box; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mdl-card {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  /* Bewegung (transform) entfernen, Farb-/Opazitäts-Übergänge dürfen bleiben.
+     Daher gezielt transition: none nur dort, wo Bewegung entsteht. */
+  .mdl-back,
+  .mdl-chip,
+  .mdl-dl,
+  .mdl-card,
+  .mdl-set,
+  .mdl-copy,
+  .mdl-size-chip,
+  .mdl-tab,
+  .mdl-tabs .mdl-tab-glider,
+  .mdl-hero,
+  .mdl-dl .mdl-dl-fill { transition: none; }
+  .mdl-card:hover .mdl-hero { transform: none; }
+  /* :active-Skalierung neutralisieren */
+  .mdl-back:active,
+  .mdl-chip:active,
+  .mdl-dl:active,
+  .mdl-set:active,
+  .mdl-copy:active,
+  .mdl-size-chip:active,
+  .mdl-tab:active { transform: none; }
+}
+
+@media (max-width: 560px) {
+  .mdl-grid { grid-template-columns: 1fr; }
+  .mdl-sort { margin-left: 0; width: 100%; }
+  .mdl-sort-trigger { flex: 1 1 auto; }
+}
+
+/* ----------------------------------------------------------------------------
+   "PC scannen": Button, Ergebnis-Panel, Fit-Badges, Benchmark
+   ------------------------------------------------------------------------- */
+.mdl-scan {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 12px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: hsl(var(--accent-100));
+  background: hsl(var(--accent-100) / 0.12);
+  border: 1px solid hsl(var(--accent-100) / 0.25);
+  border-radius: var(--mdl-radius-sm);
+  cursor: pointer;
+  outline: none;
+  transition: background 140ms var(--mdl-ease), transform 130ms var(--mdl-ease);
+}
+.mdl-scan .mdl-ico { width: 15px; height: 15px; }
+.mdl-scan:hover { background: hsl(var(--accent-100) / 0.18); }
+.mdl-scan:active { transform: scale(0.97); }
+.mdl-scan:focus-visible { border-color: hsl(var(--accent-100) / 0.7); }
+
+.mdl-scanpanel {
+  margin: 14px clamp(16px, 4vw, 40px) 0;
+  padding: 16px 18px;
+  background: hsl(var(--bg-200));
+  border: 1px solid hsl(var(--border-100) / 0.14);
+  border-radius: var(--mdl-radius);
+  animation: mdl-scan-in 220ms var(--mdl-ease) both;
+}
+.mdl-scanpanel[hidden] { display: none; }
+@keyframes mdl-scan-in {
+  from { opacity: 0; transform: translateY(-6px) scale(0.985); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.mdl-scan-head { display: flex; align-items: center; gap: 10px; }
+.mdl-scan-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: hsl(var(--text-100));
+}
+.mdl-scan-title .mdl-ico { width: 16px; height: 16px; color: hsl(var(--accent-100)); }
+.mdl-scan-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  margin-left: auto;
+  padding: 0;
+  color: hsl(var(--text-400));
+  background: transparent;
+  border: 0;
+  border-radius: var(--mdl-radius-sm);
+  cursor: pointer;
+  transition: background 140ms var(--mdl-ease), color 140ms var(--mdl-ease), transform 130ms var(--mdl-ease);
+}
+.mdl-scan-close:hover { color: hsl(var(--text-100)); background: hsl(var(--text-100) / 0.08); }
+.mdl-scan-close:active { transform: scale(0.94); }
+.mdl-scan-close .mdl-ico { width: 15px; height: 15px; }
+
+.mdl-hw-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.mdl-hw-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 26px;
+  padding: 0 10px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: hsl(var(--text-200));
+  background: hsl(var(--bg-400) / 0.55);
+  border: 1px solid hsl(var(--border-100) / 0.12);
+  border-radius: 999px;
+}
+.mdl-hw-chip b { font-weight: 600; color: hsl(var(--text-400)); }
+
+.mdl-scan-sub {
+  margin: 16px 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: hsl(var(--text-500));
+}
+.mdl-scan-none { margin: 10px 0 2px; font-size: 13px; color: hsl(var(--text-400)); }
+
+/* Empfehlungszeilen: keine Karten, nur Trennlinien (dichte Daten-Ansicht) */
+.mdl-recs { display: flex; flex-direction: column; }
+.mdl-rec {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 42px;
+  padding: 5px 0;
+  border-top: 1px solid hsl(var(--border-100) / 0.1);
+}
+.mdl-rec:first-child { border-top: 0; }
+.mdl-rec-cat {
+  flex: 0 0 76px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: hsl(var(--text-500));
+  text-transform: uppercase;
+}
+.mdl-rec-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 500;
+  color: hsl(var(--text-100));
+}
+.mdl-rec-size { font-style: normal; margin-left: 6px; font-size: 12px; color: hsl(var(--accent-100)); }
+.mdl-rec-est { flex: 0 0 auto; font-size: 12px; font-variant-numeric: tabular-nums; color: hsl(var(--text-500)); }
+.mdl-rec-tps { flex: 0 0 auto; font-size: 12px; font-variant-numeric: tabular-nums; color: hsl(var(--accent-100)); }
+.mdl-rec .mdl-dl { width: auto; flex: 0 0 auto; height: 28px; font-size: 12px; padding: 0 10px; }
+.mdl-rec .mdl-size-installed { width: auto; flex: 0 0 auto; height: 28px; font-size: 12px; padding: 0 10px; }
+
+/* Fit-Badges: gleiche Idiomatik wie .mdl-size-installed (bewusst Hartwerte im Dark-Theme) */
+.mdl-fit {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.mdl-fit-gpu { color: #8fe3b0; background: #1d3e2c4d; border: 1px solid #2b5d4255; }
+.mdl-fit-ram { color: #e8cd7f; background: #453a184d; border: 1px solid #6d5c2a55; }
+.mdl-fit-no  { color: hsl(var(--text-500)); background: hsl(var(--text-100) / 0.05); border: 1px solid hsl(var(--border-100) / 0.12); }
+
+/* Benchmark */
+.mdl-bench { display: flex; align-items: center; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+.mdl-bench-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 30px;
+  padding: 0 12px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: hsl(var(--text-100));
+  background: hsl(var(--bg-400) / 0.6);
+  border: 1px solid hsl(var(--text-100) / 0.1);
+  border-radius: var(--mdl-radius-sm);
+  cursor: pointer;
+  transition: background 140ms var(--mdl-ease), transform 130ms var(--mdl-ease);
+}
+.mdl-bench-btn .mdl-ico { width: 14px; height: 14px; }
+.mdl-bench-btn:hover:not(:disabled) { background: hsl(var(--bg-400)); }
+.mdl-bench-btn:active:not(:disabled) { transform: scale(0.97); }
+.mdl-bench-btn:disabled { opacity: 0.5; cursor: default; }
+.mdl-bench-btn[data-bench="running"] { color: #e8cd7f; border-color: #6d5c2a55; }
+.mdl-bench-hint { font-size: 12px; color: hsl(var(--text-500)); }
+.mdl-bench-list { display: flex; flex-direction: column; margin-top: 6px; }
+.mdl-bench-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 30px;
+  border-top: 1px solid hsl(var(--border-100) / 0.08);
+}
+.mdl-bench-row:first-child { border-top: 0; }
+.mdl-bench-name { flex: 1 1 auto; font-size: 12px; color: hsl(var(--text-300)); font-family: ui-monospace, monospace; }
+.mdl-bench-val { flex: 0 0 auto; font-size: 12px; font-variant-numeric: tabular-nums; color: hsl(var(--text-200)); }
+.mdl-bench-val b { color: hsl(var(--accent-100)); font-weight: 600; }
+.mdl-bench-load { color: hsl(var(--text-500)); }
+.mdl-bench-done { margin-top: 8px; font-size: 12px; color: #8fe3b0; }
+
+/* Skeleton-Shimmer (Ladezustand statt Spinner) */
+.mdl-skel {
+  display: inline-block;
+  height: 14px;
+  width: 100%;
+  border-radius: 6px;
+  background: linear-gradient(90deg,
+    hsl(var(--text-100) / 0.06) 25%,
+    hsl(var(--text-100) / 0.12) 50%,
+    hsl(var(--text-100) / 0.06) 75%);
+  background-size: 200% 100%;
+  animation: mdl-shimmer 1.2s linear infinite;
+}
+.mdl-skel-row { height: 28px; margin-top: 8px; border-radius: var(--mdl-radius-sm); }
+@keyframes mdl-shimmer {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mdl-scanpanel { animation: none; }
+  .mdl-skel { animation: none; background: hsl(var(--text-100) / 0.08); }
+  .mdl-scan:active, .mdl-scan-close:active, .mdl-bench-btn:active:not(:disabled) { transform: none; }
+}
+
+@media (max-width: 640px) {
+  .mdl-rec { flex-wrap: wrap; }
+  .mdl-rec-cat { flex-basis: 100%; }
+  .mdl-rec-est { display: none; }
+}

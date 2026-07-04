@@ -1,0 +1,18 @@
+<svg viewBox="88 45 300 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="jvl-main" x1="124" y1="103" x2="330" y2="305" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#20242c"/><stop offset="0.55" stop-color="#1a1e26"/><stop offset="1" stop-color="#171b22"/>
+    </linearGradient>
+    <linearGradient id="jvl-blue" x1="96" y1="260" x2="156" y2="320" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5d83ff"/><stop offset="1" stop-color="#4169f4"/>
+    </linearGradient>
+    <linearGradient id="jvl-blue2" x1="303" y1="69" x2="345" y2="111" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5c82ff"/><stop offset="1" stop-color="#4169f4"/>
+    </linearGradient>
+  </defs>
+  <rect x="88" y="45" width="300" height="300" rx="66" fill="#ffffff"/>
+  <rect x="96" y="260" width="60" height="61" rx="10" fill="url(#jvl-blue)"/>
+  <path fill="url(#jvl-main)" fill-rule="evenodd" d="M 257 103 C 262 103 264 106 264 112 L 264 131 C 264 144 271 151 284 151 L 313 151 C 322 151 327 157 327 166 L 327 247 C 327 279 303 301 276 301 L 180 301 C 174 301 170 297 170 291 L 170 273 C 170 265 165 260 157 260 L 140 260 C 132 260 127 254 127 246 L 127 193 C 127 143 166 103 216 103 Z M 198 153 C 184 153 176 162 176 176 L 176 226 C 176 240 184 249 198 249 L 249 249 C 263 249 271 240 271 226 L 271 176 C 271 162 263 153 249 153 Z"/>
+  <rect x="303" y="69" width="42" height="42" rx="8" fill="url(#jvl-blue2)"/>
+  <rect x="345" y="119" width="35" height="36" rx="6.5" fill="url(#jvl-main)"/>
+</svg>

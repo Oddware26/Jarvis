@@ -48,6 +48,19 @@ Jarvis is a fully local, privacy-first personal assistant that runs on your own 
 - 🔊 Optional offline speech-to-text (Whisper), hyper-real local voices (XTTS), and local image generation (Z-Image)
 - ✅ **Confirm-before-risky** — delete, shutdown, send email, or run command always ask first
 
+<p align="center">
+  <img src="docs/images/websearch.png" alt="Local DuckDuckGo web search with a sources pill" width="49%">&nbsp;
+  <img src="docs/images/specs.png" alt="Reading real system info through the action server" width="49%">
+</p>
+
+<p align="center">
+  <img src="docs/images/confirm.png" alt="Confirm-before-risky — a shutdown request always asks first" width="72%">
+</p>
+
+<p align="center">
+  <img src="docs/images/plusmenu.png" alt="Composer menu — create images, search the web, attach files" width="88%">
+</p>
+
 **Privacy**
 - 100% local. Servers bind to `127.0.0.1` only. No telemetry, ever.
 

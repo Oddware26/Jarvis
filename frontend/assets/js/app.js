@@ -2357,7 +2357,7 @@
     const icons = el("span", "jarvis-src-icons");
     list.slice(0, 3).forEach(function (s) { icons.appendChild(favImg(s.url)); });
     pill.appendChild(icons);
-    pill.appendChild(el("span", "jarvis-src-count", list.length + (list.length === 1 ? " Quelle" : " Quellen")));
+    pill.appendChild(el("span", "jarvis-src-count", list.length + " " + (list.length === 1 ? tr("src.one") : tr("src.many"))));
     tools.insertBefore(pill, time || null);
     // Liste klappt UNTER der Fußzeile auf (zu, bis die Pille geklickt wird).
     const panel = el("div", "jarvis-src-list");

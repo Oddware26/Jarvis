@@ -241,6 +241,9 @@
     "act.confirm": "Confirm",
     "act.cancel": "Cancel",
     "act.error": "Error",
+    // web-search sources pill
+    "src.one": "source",
+    "src.many": "sources",
     // action chip labels
     "act.open_website": "Open website",
     "act.open_app": "Open app",
@@ -502,6 +505,9 @@
     "act.confirm": "Bestätigen",
     "act.cancel": "Abbrechen",
     "act.error": "Fehler",
+    // Quellen-Pille der Websuche
+    "src.one": "Quelle",
+    "src.many": "Quellen",
     "act.open_website": "Website öffnen",
     "act.open_app": "App öffnen",
     "act.system_info": "Systeminfo",

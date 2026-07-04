@@ -1125,16 +1125,16 @@ class Handler(BaseHTTPRequestHandler):
             if target:
                 return 200, open_app_known(target)
             g = need_confirm("open_app", data,
-                             "Ich wuerde die unbekannte App '%s' per Best-Effort starten." % name,
+                             "I would launch the unknown app '%s' (best effort)." % name,
                              force=True)
             if g:
                 return 200, g
             _launch(str(name))
-            return 200, {"ok": True, "launched": name, "note": "best-effort (nicht in whitelist)"}
+            return 200, {"ok": True, "launched": name, "note": "best-effort (not in whitelist)"}
 
         if p == "/close_app":
             name = data.get("name")
-            g = need_confirm("close_app", data, "Ich wuerde die App '%s' beenden (taskkill /F)." % name,
+            g = need_confirm("close_app", data, "I would force-quit the app '%s' (taskkill /F)." % name,
                              force=True)
             if g:
                 return 200, g
@@ -1153,7 +1153,7 @@ class Handler(BaseHTTPRequestHandler):
             return 200, {"ok": True, "key": key}
         if p == "/power":
             action = data.get("action")
-            g = need_confirm("power", data, "Ich wuerde jetzt '%s' ausfuehren." % action, force=True)
+            g = need_confirm("power", data, "I would run '%s' now." % action, force=True)
             if g:
                 return 200, g
             return 200, do_power(action)
@@ -1194,7 +1194,7 @@ class Handler(BaseHTTPRequestHandler):
             return 200, {"ok": True, "opened": path}
         if p == "/organize_folder":
             g = need_confirm("move", data,
-                             "Ich wuerde die Dateien in '%s' nach Endung in Unterordner sortieren."
+                             "I would sort the files in '%s' into subfolders by extension."
                              % data.get("path"), force=True)
             if g:
                 return 200, g
@@ -1202,10 +1202,10 @@ class Handler(BaseHTTPRequestHandler):
         if p == "/file_op":
             op = (data.get("op") or "").lower()
             label = {"delete": "delete", "move": "move", "copy": "overwrite"}.get(op, op)
-            summary = {"delete": "Ich wuerde '%s' loeschen." % data.get("src"),
-                       "move": "Ich wuerde '%s' nach '%s' verschieben." % (data.get("src"), data.get("dst")),
-                       "copy": "Ich wuerde '%s' nach '%s' kopieren." % (data.get("src"), data.get("dst"))
-                       }.get(op, "Ich wuerde eine Dateiaktion '%s' ausfuehren." % op)
+            summary = {"delete": "I would delete '%s'." % data.get("src"),
+                       "move": "I would move '%s' to '%s'." % (data.get("src"), data.get("dst")),
+                       "copy": "I would copy '%s' to '%s'." % (data.get("src"), data.get("dst"))
+                       }.get(op, "I would perform the file operation '%s'." % op)
             g = need_confirm(label, data, summary, force=True)
             if g:
                 return 200, g
@@ -1223,12 +1223,12 @@ class Handler(BaseHTTPRequestHandler):
             overwrite = bool(data.get("overwrite"))
             exists = os.path.exists(ap)
             if exists and not overwrite:
-                return 409, {"error": "Datei existiert bereits; overwrite:true noetig.", "path": ap}
+                return 409, {"error": "File already exists; overwrite:true required.", "path": ap}
             if sensitive or (exists and overwrite):
-                where = "ausserhalb des Workspace " if sensitive else ""
-                extra = " (ueberschreibt vorhandene Datei)" if exists else ""
+                where = "outside the workspace " if sensitive else ""
+                extra = " (overwrites the existing file)" if exists else ""
                 g = need_confirm("write_file", data,
-                                 "Ich wuerde die Datei %s'%s' schreiben%s." % (where, ap, extra),
+                                 "I would write the file %s'%s'%s." % (where, ap, extra),
                                  force=True)
                 if g:
                     return 200, g
@@ -1263,8 +1263,8 @@ class Handler(BaseHTTPRequestHandler):
                 return 400, {"error": str(e)}
             if sensitive:
                 g = need_confirm("create_project", data,
-                                 "Ich wuerde ein Projekt AUSSERHALB des Workspace unter '%s' "
-                                 "anlegen (%d Datei(en))." % (proj_dir, len(files)), force=True)
+                                 "I would create a project OUTSIDE the workspace at '%s' "
+                                 "(%d file(s))." % (proj_dir, len(files)), force=True)
                 if g:
                     return 200, g
             return 200, create_project(proj_dir, files, bool(data.get("open", True)))
@@ -1281,7 +1281,7 @@ class Handler(BaseHTTPRequestHandler):
             if not os.path.isdir(cwd):
                 cwd = WORKSPACE_DIR
             g = need_confirm("run_command", data,
-                             "Ich wuerde den Befehl ausfuehren: %s  (in %s)" % (command, cwd),
+                             "I would run the command: %s  (in %s)" % (command, cwd),
                              force=True)
             if g:
                 return 200, g
@@ -1300,14 +1300,14 @@ class Handler(BaseHTTPRequestHandler):
                 return 200, {"ok": True, "opened": ap, "url": _file_url(ap)}
             if kind == "open":
                 g = need_confirm("run_file", data,
-                                 "Ich wuerde '%s' im Standardprogramm oeffnen/ausfuehren." % ap,
+                                 "I would open/run '%s' with its default program." % ap,
                                  force=True)
                 if g:
                     return 200, g
                 _open_default(ap)
                 return 200, {"ok": True, "opened": ap}
             g = need_confirm("run_file", data,
-                             "Ich wuerde die Datei ausfuehren: %s" % cmd, force=True)
+                             "I would run the file: %s" % cmd, force=True)
             if g:
                 return 200, g
             cwd = os.path.dirname(ap) or WORKSPACE_DIR
@@ -1357,7 +1357,7 @@ class Handler(BaseHTTPRequestHandler):
             if not domain_allowed(url):
                 return 200, {"error": "domain not allowed", "url": url}
             g = need_confirm("browser_act", data,
-                             "Ich wuerde schreibend mit '%s' interagieren (%d Schritte)."
+                             "I would interact with '%s' (%d write steps)."
                              % (url, len(data.get("steps") or [])), force=True)
             if g:
                 return 200, g
@@ -1383,7 +1383,7 @@ class Handler(BaseHTTPRequestHandler):
             return 200, {"answer": answer, "model": VISION_MODEL}
         if p == "/agent_task":
             g = need_confirm("agent_task", data,
-                             "Ich wuerde autonom (max %s Schritte) am PC arbeiten, Ziel: %s"
+                             "I would work autonomously on this PC (max %s steps), goal: %s"
                              % (data.get("max_steps") or 6, data.get("goal")), force=True)
             if g:
                 return 200, g
@@ -1392,7 +1392,7 @@ class Handler(BaseHTTPRequestHandler):
         # ---- E-Mail ----
         if p == "/send_email":
             g = need_confirm("send_email", data,
-                             "Ich wuerde eine E-Mail an '%s' senden (Betreff: %s)."
+                             "I would send an email to '%s' (subject: %s)."
                              % (data.get("to"), data.get("subject")), force=True)
             if g:
                 return 200, g
